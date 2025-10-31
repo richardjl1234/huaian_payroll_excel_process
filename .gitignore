@@ -1,0 +1,82 @@
+# Database files
+payroll_database.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Data folders containing Excel files
+new_payroll/
+old_payroll/
+original_files/
+new_payroll/** 
+old_payroll/** 
+
+# Python cache files
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.marscode/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+logs/
+log.txt
+log*.txt
+log_batch.*
+
+# Temporary files
+*.tmp
+*.temp
+temp*.txt
+# One-time programs output files
+one_time_pgms/*.csv
+one_time_pgms/*.log
+one_time_pgms/*.txt
+
+# Processed data folders
+processed_定额/
+outliers_new/
+outliers_old/
+
+
+**/*.pyc
