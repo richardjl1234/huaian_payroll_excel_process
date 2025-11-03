@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 
-def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: str, table_index: int) -> pd.DataFrame:
+def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: str, table_index: int) -> tuple:
     """
     特殊逻辑预处理函数 - 在将DataFrame加载到SQLite数据库之前应用特殊逻辑
     
@@ -15,7 +15,7 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
         table_index (int): 表索引
         
     Returns:
-        pd.DataFrame: 应用特殊逻辑后的数据框
+        tuple: (processed_df, updated_sheet_name, updated_file_name) - 应用特殊逻辑后的数据框和更新的工作表名称、文件名
     """
     # 设置日志文件
     log_file = "special_logic_applied.log"
@@ -27,6 +27,23 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
         
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(log_entry)
+    
+    # 工作表名称映射逻辑
+    original_sheet_name = sheet_name
+    sheet_name_mappings = {
+        '14年6月精加工': '精加工',
+        '14年6月装配 喷漆': '装配喷漆',
+        '14年6月绕嵌排': '绕嵌排',
+        '装配 喷漆': '装配喷漆',
+        '喷漆装配': '装配喷漆',
+        '金加工': '精加工'
+    }
+    
+    # 应用工作表名称映射
+    if sheet_name in sheet_name_mappings:
+        new_sheet_name = sheet_name_mappings[sheet_name]
+        log_logic(f"工作表名称映射: '{sheet_name}' -> '{new_sheet_name}'")
+        sheet_name = new_sheet_name
     
     # 如果数据框为空，直接返回
     if df.empty or len(df.columns) == 0:
@@ -133,13 +150,13 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
         df = df.rename(columns={'任务名称': '客户名称'})
         log_logic(f"将列名 '任务名称' 替换为 '客户名称'")
     
-    # 逻辑14: 当'职员全名'是'前装'时，将记录拆分为2行
+    # 逻辑14: 当'职员全名'是'前装'或'前装人员'时，将记录拆分为2行
     if '职员全名' in df.columns and '计件数量' in df.columns and '金额' in df.columns:
         rows_to_add = []
         rows_to_remove = []
         
         for idx, row in df.iterrows():
-            if row['职员全名'] == '前装':
+            if row['职员全名'].startswith('前装'):
                 # 创建第一行：黄志梅
                 row1 = row.copy()
                 row1['职员全名'] = '黄志梅'
@@ -220,16 +237,16 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
             new_rows_df = pd.DataFrame(rows_to_add)
             df = pd.concat([df, new_rows_df], ignore_index=True)
     
-    # 逻辑15: 当'职员全名'是'中装'时，将值改为'李兆军'
+    # 逻辑15: 当'职员全名'是'中装'或'中装人员'时，将值改为'李兆军'
     if '职员全名' in df.columns:
-        mask = df['职员全名'] == '中装'
+        mask = df['职员全名'].str.startswith('中装', na=False)
         if mask.any():
             df.loc[mask, '职员全名'] = '李兆军'
             operation_counts['中装替换'] = mask.sum()
     
-    # 逻辑16: 当'职员全名'是'后装'时，将值改为'汤雅林'
+    # 逻辑16: 当'职员全名'是'后装'或'后装人员'时，将值改为'汤雅林'
     if '职员全名' in df.columns:
-        mask = df['职员全名'] == '后装'
+        mask = df['职员全名'].str.startswith('后装', na=False)
         if mask.any():
             df.loc[mask, '职员全名'] = '汤雅林'
             operation_counts['后装替换'] = mask.sum()
@@ -242,4 +259,10 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
     if operation_counts['后装替换'] > 0:
         log_logic(f"将'后装'改为'汤雅林' 共{operation_counts['后装替换']}次")
     
-    return df
+    # 添加文件名和工作表名列到DataFrame
+    if not df.empty:
+        df = df.copy()
+        df.loc[:, '文件名'] = file_name
+        df.loc[:, 'sheet名'] = sheet_name
+    
+    return df, sheet_name, file_name

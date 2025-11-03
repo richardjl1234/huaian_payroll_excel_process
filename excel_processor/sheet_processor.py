@@ -351,7 +351,7 @@ def load_df_to_db(df: pd.DataFrame, file_name: str, sheet_name: str, table_index
         
         # 调用特殊逻辑预处理函数
         # Call special logic preprocessing function
-        df = special_logic_preprocess_df(df, sheet_name, file_name, table_index)
+        df, sheet_name, file_name = special_logic_preprocess_df(df, sheet_name, file_name, table_index)
         
         # Define the expected columns and their data types
         expected_columns = {
@@ -451,9 +451,7 @@ def load_df_to_db(df: pd.DataFrame, file_name: str, sheet_name: str, table_index
             if col not in df.columns:
                 df.loc[:, col] = None
         
-        # Set the file name and sheet name for all rows
-        df.loc[:, '文件名'] = file_name
-        df.loc[:, 'sheet名'] = sheet_name
+        # File name and sheet name are already set by special_logic_preprocess_df
         
         # Ensure correct column order
         df = df[list(expected_columns.keys())]
