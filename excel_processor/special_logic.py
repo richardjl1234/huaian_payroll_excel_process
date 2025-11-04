@@ -259,10 +259,44 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
     if operation_counts['后装替换'] > 0:
         log_logic(f"将'后装'改为'汤雅林' 共{operation_counts['后装替换']}次")
     
+    # 逻辑17: 当'职员全名'列的值为空、空格（或中文空格）、或None时，从数据框中丢弃该行
+    if '职员全名' in df.columns:
+        # 创建过滤条件：非空、非None、去除空格后非空
+        mask = df['职员全名'].notna() & (df['职员全名'].astype(str).str.strip() != '')
+        rows_before = len(df)
+        df = df[mask].reset_index(drop=True)
+        rows_after = len(df)
+        discarded_rows = rows_before - rows_after
+        if discarded_rows > 0:
+            log_logic(f"丢弃了 {discarded_rows} 行 '职员全名' 为空、空格或None的记录")
+    
+    # 逻辑18: 当'职员全名'列包含特定中文短语时，丢弃对应的行
+    if '职员全名' in df.columns:
+        # 去除前缀空格
+        df['职员全名'] = df['职员全名'].astype(str).str.strip()
+        
+        # 定义需要丢弃的特定中文短语
+        discard_phrases = ['下料', '铣底脚：', '铣：', '校平衡', '车转子', '压：', '磨：']
+        
+        # 创建过滤条件：不包含任何需要丢弃的短语
+        discard_mask = pd.Series(False, index=df.index)
+        for phrase in discard_phrases:
+            discard_mask = discard_mask | df['职员全名'].str.contains(phrase, na=False)
+        
+        # 丢弃包含特定短语的行
+        rows_before = len(df)
+        df = df[~discard_mask].reset_index(drop=True)
+        rows_after = len(df)
+        discarded_rows = rows_before - rows_after
+        
+        if discarded_rows > 0:
+            log_logic(f"丢弃了 {discarded_rows} 行包含特定短语的记录: {discard_phrases}")
+    
     # 添加文件名和工作表名列到DataFrame
     if not df.empty:
         df = df.copy()
         df.loc[:, '文件名'] = file_name
         df.loc[:, 'sheet名'] = sheet_name
     
+    print(str(df))
     return df, sheet_name, file_name
