@@ -367,7 +367,8 @@ def load_df_to_db(df: pd.DataFrame, file_name: str, sheet_name: str, table_index
             '系数': 'NUMERIC(10,2)',
             '定额': 'NUMERIC(10,2)',
             '金额': 'NUMERIC(10,2)',
-            '备注': 'CHAR(100)'
+            '备注': 'CHAR(100)',
+            '代码': 'CHAR(12)'
         }
         
         # Filter dataframe to only include columns that exist in expected columns

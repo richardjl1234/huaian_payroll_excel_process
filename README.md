@@ -43,6 +43,11 @@ payroll_communication/
 ├── original_files/           # 原始文件文件夹（被.gitignore排除）
 ├── ../payroll_database.db    # SQLite数据库文件（位于父目录，被.gitignore排除）
 ├── one_time_pgms/            # 一次性处理程序
+│   ├── excel_viewer.py       # Web-based Excel文件查看器
+│   ├── templates/            # Web界面模板
+│   │   └── index.html        # 主界面模板
+│   ├── run_excel_viewer.bat  # Windows启动脚本
+│   └── debug_file_matching.py # 文件匹配调试工具
 └── excel_processor/          # 核心处理模块
     ├── config.py             # 全局配置和日志设置
     ├── sheet_gen.py          # Excel文件生成器
@@ -181,7 +186,9 @@ CREATE TABLE payroll_details (
     系数 NUMERIC(10,2),     -- 系数（浮点数，2位小数）
     定额 NUMERIC(10,2),     -- 定额（浮点数，2位小数）
     金额 NUMERIC(10,2),     -- 金额（浮点数，2位小数）
-    备注 CHAR(100)          -- 备注信息
+    备注 CHAR(100),         -- 备注信息
+    代码 CHAR(12),          -- 代码（外键，引用quota表）
+    FOREIGN KEY (代码) REFERENCES quota(代码)
 );
 ```
 
@@ -450,6 +457,72 @@ Excel文件 → sheet_gen() → SheetContents → df_gen() → SplitDataFrame �
 - 列名标准化
 - 数据格式转换
 
+## Excel文件查看器
+
+### 功能特性
+
+- 🌐 **Web界面**: 基于Flask的Web应用程序，提供直观的文件比较界面
+- 📊 **并排比较**: 左侧显示old_folder文件，右侧显示new_folder文件，便于对比分析
+- 🔄 **文件导航**: 提供Previous/Next按钮，支持浏览所有文件（202001-202012）
+- 📋 **工作表选择**: 三个工作表按钮：绕嵌排、精加工、喷漆装配
+- 🔍 **智能匹配**: 自动处理工作表名称变体（'金加工'→'精加工'，'装配喷漆'→'喷漆装配'）
+- 📱 **响应式设计**: 使用Bootstrap 5实现现代化自适应界面
+- ⚡ **动态加载**: AJAX技术实现无刷新页面切换
+
+### 使用方法
+
+#### 1. 启动Web服务器
+```bash
+# 方法1: 直接运行Python脚本
+python one_time_pgms/excel_viewer.py
+
+# 方法2: 使用Windows批处理脚本
+one_time_pgms/run_excel_viewer.bat
+```
+
+#### 2. 访问Web界面
+- 打开浏览器访问：`http://localhost:5000`
+- 系统自动显示第一个文件（202001）的"绕嵌排"工作表
+
+#### 3. 功能操作
+- **工作表选择**: 点击顶部的三个按钮切换不同工作表
+- **文件导航**: 使用Previous/Next按钮浏览所有文件
+- **数据查看**: 左右两侧分别显示old_folder和new_folder的相同文件
+- **滚动浏览**: 使用滚动条查看完整的表格数据
+
+### 技术架构
+
+#### 后端技术
+- **Flask**: Python Web框架，提供RESTful API
+- **pandas**: Excel文件读取和数据处理
+- **openpyxl/xlrd**: Excel文件格式支持
+
+#### 前端技术
+- **Bootstrap 5**: 现代化响应式UI框架
+- **JavaScript**: 动态数据加载和交互功能
+- **AJAX**: 异步数据请求，无需页面刷新
+
+#### 文件处理
+- **路径管理**: 自动定位new_payroll和old_payroll文件夹
+- **文件匹配**: 智能识别相同文件名的文件
+- **工作表读取**: 支持.xls和.xlsx格式文件
+- **错误处理**: 优雅的错误处理和用户提示
+
+### 安全特性
+
+- **文件隔离**: 系统只处理new_payroll和old_payroll根目录的文件
+- **placeholder保护**: old_payroll/placeholder/文件夹中的文件不会被处理
+- **路径验证**: 严格的路径验证，防止目录遍历攻击
+
+### 重要发现
+
+**文件处理决策**: 通过使用excel_viewer.py进行文件比较，我们发现new_folder中的所有2020xx.xls文件的金额都比old_folder中的对应文件大。因此，决定将old_folder中的这些文件移动到old_folder\placeholder文件夹中，以确保这些文件不会被批处理系统处理。
+
+**决策依据**:
+- 通过excel_viewer.py的并排比较功能，确认new_folder中的文件金额更大
+- 为避免数据重复和确保数据准确性，将old_folder中的对应文件移至placeholder
+- placeholder文件夹中的文件被系统自动排除，不会被批处理程序处理
+
 ## 扩展功能
 
 程序可以轻松扩展以下功能：
@@ -669,7 +742,7 @@ Excel文件 → sheet_gen() → SheetContents → df_gen() → SplitDataFrame �
 #### 4. 重复文件识别
 - **功能**: 识别 new_payroll 和 old_payroll 文件夹中的重复文件
 - **发现**: 12个重复文件（202001.xls 到 202012.xlsx）
-- **结果**: 提供重复文件列表，便于数据去重和文件管理
+- **结果**: moved to old_folder/placehoder folder (including 202010_2.xls)
 
 ### 2025年10月30日更新
 
