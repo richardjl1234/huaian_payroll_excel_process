@@ -17,6 +17,35 @@ except ImportError:
 setup_global_logging()
 logger = logging.getLogger(__name__)
 
+def _process_cell_value(cell_value):
+    """
+    Process a cell value to ensure proper string representation.
+    For numeric values that should be strings (like model numbers),
+    remove the decimal point if it's a whole number.
+    
+    Parameters:
+        cell_value: The raw cell value from Excel
+        
+    Returns:
+        str: Processed string value
+    """
+    if cell_value is None:
+        return ''
+    elif isinstance(cell_value, float) and cell_value != cell_value:  # Check for NaN
+        return ''
+    else:
+        # For numeric values that should be strings (like model numbers),
+        # remove the decimal point if it's a whole number
+        if isinstance(cell_value, (int, float)):
+            # Check if it's a whole number
+            if cell_value == int(cell_value):
+                return str(int(cell_value))
+            else:
+                return str(cell_value)
+        else:
+            return str(cell_value)
+
+
 def get_all_data_from_sheet(excel_file_name, sheet_name):
     """
     Extract all data from an Excel sheet and return as a summary dataframe.
@@ -60,16 +89,11 @@ def get_all_data_from_sheet(excel_file_name, sheet_name):
             # Get headers (first row)
             if sheet.max_row > 0:
                 for cell in sheet[1]:
-                    headers.append(str(cell.value) if cell.value is not None else '')
+                    headers.append(_process_cell_value(cell.value))
             
             # Get all data rows
             for row in sheet.iter_rows(min_row=1, values_only=True):
-                row_data = []
-                for cell_value in row:
-                    if cell_value is None:
-                        row_data.append('')
-                    else:
-                        row_data.append(str(cell_value))
+                row_data = [_process_cell_value(cell_value) for cell_value in row]
                 all_data.append(row_data)
                 
         elif excel_file_name.lower().endswith('.xls'):
@@ -82,17 +106,11 @@ def get_all_data_from_sheet(excel_file_name, sheet_name):
             if sheet.nrows > 0:
                 for j in range(sheet.ncols):
                     cell_value = sheet.cell_value(0, j)
-                    headers.append(str(cell_value) if cell_value is not None else '')
+                    headers.append(_process_cell_value(cell_value))
             
             # Get all data rows
             for i in range(sheet.nrows):
-                row_data = []
-                for j in range(sheet.ncols):
-                    cell_value = sheet.cell_value(i, j)
-                    if cell_value is None or (isinstance(cell_value, float) and cell_value != cell_value):  # Check for NaN
-                        row_data.append('')
-                    else:
-                        row_data.append(str(cell_value))
+                row_data = [_process_cell_value(sheet.cell_value(i, j)) for j in range(sheet.ncols)]
                 all_data.append(row_data)
         
         # Create df_summary - the complete sheet data

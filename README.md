@@ -790,9 +790,29 @@ one_time_pgms/run_excel_viewer.bat
 - **解决方案**: 在 `get_all_data_from_sheet` 函数中添加警告信息
 - **结果**: 处理 `.xls` 文件时显示："Processing .xls file '{filename}': Formulas will be evaluated and calculated values returned. Formula display values (like #VALUE! errors) cannot be preserved."
 
-## 待定问题
+## 近期更新
 
-在当前实现中，现有Excel文件中的以下列被忽略：
+### 2025年11月27日更新
+
+#### 1. 型号列数据格式修复
+- **问题**: "型号"列中的数值（如132, 71, 90）被读取为带小数点的格式（132.0, 71.0, 90.0）
+- **解决方案**: 修改Excel读取逻辑，确保型号列作为字符串读取，移除整数数值的'.0'后缀
+- **实现**: 
+  - 在 `excel_processor/sheet_processor.py` 中创建 `_process_cell_value()` 辅助函数
+  - 对于整数数值，使用 `str(int(cell_value))` 移除小数点
+  - 对于小数数值，保留原始格式用于金额等列
+- **结果**: 型号列正确显示为 "132", "71", "90" 而不是 "132.0", "71.0", "90.0"
+
+#### 2. 代码重构优化
+- **问题**: `.xlsx` 和 `.xls` 文件处理逻辑重复，代码冗余
+- **解决方案**: 提取公共逻辑到 `_process_cell_value()` 辅助函数
+- **实现**:
+  - 创建统一的单元格值处理函数
+  - 使用列表推导式简化代码
+  - 消除约30行重复代码
+- **结果**: 代码更简洁、更易维护，遵循DRY原则
+
+## 待定问题
 
 - **工序编号** - 工序编号信息
 - **乘系数定额** - 乘以系数后的定额金额
