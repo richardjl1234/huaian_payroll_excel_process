@@ -14,7 +14,7 @@ import sys
 from excel_processor.sheet_processor import load_df_to_db
 from excel_processor.sheet_gen import sheet_gen, get_excel_files, SheetContents
 from excel_processor.df_gen import df_gen, SplitDataFrame
-from excel_processor.config import setup_global_logging, DATABASE_PATH
+from excel_processor.config import setup_global_logging
 
 # Set up logging using global configuration
 setup_global_logging()
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 def clean_database_tables():
     """Clean payroll_details and load_log tables in the database."""
     try:
-        conn = sqlite3.connect(DATABASE_PATH)
+        conn = sqlite3.connect(os.environ.get("SQLITE_DB_PATH"))
         conn.execute("DELETE FROM payroll_details")
         conn.execute("DELETE FROM load_log")
         conn.commit()

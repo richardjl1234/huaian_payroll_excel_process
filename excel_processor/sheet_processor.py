@@ -8,10 +8,10 @@ from decimal import Decimal, ROUND_HALF_UP
 from typing import List
 try:
     from .special_logic import special_logic_preprocess_df
-    from .config import expected_columns, COMMON_COL_COUNT, setup_global_logging, DATABASE_PATH
+    from .config import expected_columns, COMMON_COL_COUNT, setup_global_logging
 except ImportError:
     from special_logic import special_logic_preprocess_df
-    from config import expected_columns, COMMON_COL_COUNT, setup_global_logging, DATABASE_PATH
+    from config import expected_columns, COMMON_COL_COUNT, setup_global_logging
 
 # Set up logging using global configuration
 setup_global_logging()
@@ -404,7 +404,7 @@ def load_df_to_db(df: pd.DataFrame, file_name: str, sheet_name: str, table_index
         # Log discarded columns to load_log table ONLY if there are discarded columns
         if discarded_columns:
             # Connect to SQLite database using the configured path
-            conn = sqlite3.connect(DATABASE_PATH)
+            conn = sqlite3.connect(os.environ.get("SQLITE_DB_PATH"))
             
             # Create load_log table if it doesn't exist
             create_log_table_sql = """
@@ -451,7 +451,7 @@ def load_df_to_db(df: pd.DataFrame, file_name: str, sheet_name: str, table_index
         df = df[valid_columns]
         
         # Connect to SQLite database using the configured path
-        conn = sqlite3.connect(DATABASE_PATH)
+        conn = sqlite3.connect(os.environ.get("SQLITE_DB_PATH"))
         
         # Create table if it doesn't exist with the superset of columns
         create_table_sql = f"""

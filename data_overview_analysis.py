@@ -16,7 +16,7 @@ import sys
 
 # Import database configuration
 sys.path.append(os.path.join(os.path.dirname(__file__), 'excel_processor'))
-from config import DATABASE_PATH
+from config import setup_global_logging
 
 # 设置中文字体
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
@@ -28,7 +28,7 @@ def get_comprehensive_data_analysis():
     """
     try:
         # 连接到SQLite数据库
-        conn = sqlite3.connect(DATABASE_PATH)
+        conn = sqlite3.connect(os.environ.get("SQLITE_DB_PATH"))
         
         print("=" * 80)
         print("PAYROLL_DETAILS 表综合数据分析报告")

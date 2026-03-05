@@ -6,7 +6,7 @@ with foreign key constraint to quota table.
 
 import sqlite3
 import os
-from excel_processor.config import DATABASE_PATH
+from excel_processor.config import setup_global_logging
 
 def create_new_database_schema():
     """
@@ -15,7 +15,7 @@ def create_new_database_schema():
     """
     try:
         # Connect to the database
-        conn = sqlite3.connect(DATABASE_PATH)
+        conn = sqlite3.connect(os.environ.get("SQLITE_DB_PATH"))
         cursor = conn.cursor()
         
         print("Connected to database successfully")

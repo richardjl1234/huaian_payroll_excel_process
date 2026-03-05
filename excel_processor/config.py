@@ -7,11 +7,6 @@ import os
 from pathlib import Path
 
 
-# Database configuration
-# Database file location - moved to parent folder
-CURRENT_DIR = Path(__file__).parent
-DATABASE_PATH =  str(CURRENT_DIR.parent.parent / "payroll_database.db")
-
 # Expected columns for payroll data processing
 expected_columns = ['职员全名', '日期','客户名称', '型号', '工序全名', '工序', '计件数量', '系数', '定额', '金额', '备注', '代码']
 

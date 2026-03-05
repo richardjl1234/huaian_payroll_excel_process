@@ -11,7 +11,7 @@ import os
 
 # Import database configuration
 sys.path.append(os.path.join(os.path.dirname(__file__), 'excel_processor'))
-from config import DATABASE_PATH
+from config import setup_global_logging
 
 
 def print_table_with_format(df, max_rows=20):
@@ -91,7 +91,7 @@ def check_load_log_table():
     
     try:
         # 连接到SQLite数据库
-        conn = sqlite3.connect(DATABASE_PATH)
+        conn = sqlite3.connect(os.environ.get("SQLITE_DB_PATH"))
         cursor = conn.cursor()
         
         print("成功连接到数据库")

@@ -15,7 +15,7 @@ import sys
 
 # Import database configuration
 sys.path.append(os.path.join(os.path.dirname(__file__), 'excel_processor'))
-from config import DATABASE_PATH
+from config import setup_global_logging
 
 # 设置中文字体
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
@@ -27,7 +27,7 @@ def analyze_amount_relationships():
     """
     try:
         # 连接到SQLite数据库
-        conn = sqlite3.connect(DATABASE_PATH)
+        conn = sqlite3.connect(os.environ.get("SQLITE_DB_PATH"))
         
         print("=" * 80)
         print("计件数量、系数、定额与金额关系分析")
