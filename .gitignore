@@ -81,3 +81,5 @@ deleted/
 
 
 **/*.pyc
+
+outliers_to_be_deleted.xlsx
