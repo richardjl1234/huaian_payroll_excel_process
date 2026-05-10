@@ -166,7 +166,7 @@ def split_raw_sheet_contents(df_summary):
         # Split into multiple dataframes based on blank rows
         dfs = []
         current_data = []
-        
+
         for row in all_data:
             # Check if row is blank (all empty strings)
             if all(cell == '' for cell in row):
@@ -177,7 +177,7 @@ def split_raw_sheet_contents(df_summary):
                     for i in range(len(current_data)):
                         if len(current_data[i]) < max_len:
                             current_data[i].extend([''] * (max_len - len(current_data[i])))
-                    
+
                     # Create DataFrame with proper column headers
                     # Use the first row as headers if it contains text data
                     if current_data and any(cell.strip() for cell in current_data[0]):
@@ -188,7 +188,7 @@ def split_raw_sheet_contents(df_summary):
                         # Use the original headers from the sheet
                         headers_for_df = unique_headers[:max_len]
                         data_for_df = current_data
-                    
+
                     # Handle duplicate column names
                     unique_headers_for_df = []
                     header_counts = {}
@@ -224,7 +224,7 @@ def split_raw_sheet_contents(df_summary):
                 # Use the original headers from the sheet
                 headers_for_df = unique_headers[:max_len]
                 data_for_df = current_data
-            
+
             # Handle duplicate column names
             unique_headers_for_df = []
             header_counts = {}
@@ -256,10 +256,10 @@ def split_raw_sheet_contents(df_summary):
 def _validate_and_fix_dataframe_columns(df):
     """
     Validate and fix dataframe columns based on expected_columns and COMMON_COL_COUNT.
-    
+
     Parameters:
         df (pd.DataFrame): The dataframe to validate
-        
+
     Returns:
         pd.DataFrame: The validated and potentially fixed dataframe, or None if invalid
     """
@@ -267,11 +267,11 @@ def _validate_and_fix_dataframe_columns(df):
         # Count how many expected columns are found in the current dataframe
         found_columns = [col for col in df.columns if col in expected_columns]
         found_count = len(found_columns)
-        
+
         # If we have enough expected columns, return the dataframe as is
         if found_count >= COMMON_COL_COUNT:
             return df
-        
+
         # If we don't have enough expected columns, check if any row has more expected columns
         logger.warning(f"Dataframe has only {found_count} expected columns, checking rows for better headers...")
         
@@ -283,7 +283,11 @@ def _validate_and_fix_dataframe_columns(df):
             # Convert row values to strings and check if they match expected columns
             row_values = [str(val).strip() for val in row.values]
             row_expected_count = sum(1 for val in row_values if val in expected_columns)
-            
+
+            # Skip section header rows (like '中装 日期 型号 工序全名...')
+            # if _is_section_header_row(row_values):
+            #     continue
+
             if row_expected_count > best_row_count:
                 best_row_count = row_expected_count
                 best_row_index = row_idx
@@ -376,7 +380,7 @@ def load_df_to_db(df: pd.DataFrame, file_name: str, sheet_name: str, table_index
             '文件名': 'CHAR(100)',
             'sheet名': 'CHAR(100)',
             '职员全名': 'CHAR(20)',
-            '日期': 'CHAR(20)', 
+            '日期': 'CHAR(100)', 
             '客户名称': 'CHAR(60)',
             '型号': 'CHAR(100)',
             '工序全名': 'CHAR(100)',
@@ -487,12 +491,34 @@ def load_df_to_db(df: pd.DataFrame, file_name: str, sheet_name: str, table_index
             else:  # CHAR types
                 # For CHAR types, ensure proper string conversion without decimal points for numeric-looking values
                 if col == '日期':  # Special handling for date column
-                    # Convert to string, but remove '.0' suffix for integer values
-                    df[col] = df[col].apply(lambda x: 
-                        str(int(float(x))) if pd.notna(x) and str(x).replace('.', '', 1).isdigit() and float(x) == int(float(x)) 
-                        else str(x) if pd.notna(x) 
-                        else ''
-                    )
+                    def process_date(x):
+                        if pd.isna(x) or str(x).strip() == '':
+                            return ''
+                        s = str(x).strip()
+                        # Check if it's a number-like string
+                        if s.replace('.', '', 1).replace('-', '', 1).isdigit():
+                            try:
+                                float_val = float(s)
+                                # If it's a whole number like "29.0", convert to integer string
+                                if float_val == int(float_val):
+                                    return str(int(float_val))
+                                # Heuristic: X.Y where X >= 10 (two-digit day) and Y is single digit and Y < X
+                                # This suggests trailing zero was truncated by Excel (e.g., 29.30 -> 29.3)
+                                # Reconstruct as X.(Y*10), e.g., 29.3 -> 29、30
+                                if '.' in s:
+                                    parts = s.split('.')
+                                    if len(parts) == 2 and len(parts[1]) == 1 and parts[1].isdigit():
+                                        X = int(parts[0])
+                                        Y = int(parts[1])
+                                        if X >= 10 and Y < X:
+                                            reconstructed_day = Y * 10
+                                            if reconstructed_day <= 31:
+                                                return f"{parts[0]}、{reconstructed_day}"
+                                return s
+                            except (ValueError, TypeError):
+                                return s
+                        return s
+                    df[col] = df[col].apply(process_date)
                 else:
                     df[col] = df[col].astype(str)
         
