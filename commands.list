@@ -1,0 +1,22 @@
+# 常用命令 - 快速参考
+
+# 1. 设置数据库路径（每次新终端必须先执行）
+export SQLITE_DB_PATH=/home/richard/shared/jianglei/payroll/payroll_database.db
+
+# 2. 端到端刷新（推荐入口：batch_process.py + 全部 9 步清洗）
+./sqlite_payroll_details_refresh.sh
+
+# 3. 仅批量处理所有 Excel 文件
+python batch_process.py
+
+# 4. 单文件处理（不清理数据库）
+python batch_process.py 201406.xls
+
+# 5. 验证日期列数据质量
+python validate_date_column.py --export-html
+
+# 6. 手动检查 Excel 数据问题（交互式，用 LibreOffice 打开 #VALUE!/#REF! 所在文件）
+python one_time_pgms/open_excel_for_review.py
+
+# 7. 生成 Excel #VALUE!/#REF! 错误报告（HTML 格式，输出到 screenshot/ 目录）
+python one_time_pgms/take_excel_screenshot.py
