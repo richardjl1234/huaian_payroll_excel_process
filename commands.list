@@ -20,3 +20,18 @@ python one_time_pgms/open_excel_for_review.py
 
 # 7. 生成 Excel #VALUE!/#REF! 错误报告（HTML 格式，输出到 screenshot/ 目录）
 python one_time_pgms/take_excel_screenshot.py
+
+# 8. 解析 Excel "汇总" 工作表到新表 payroll_summary（DB 只新增表，payroll_details 不动）
+python one_time_pgms/parse_summary_sheets.py --dry-run              # 预览
+python one_time_pgms/parse_summary_sheets.py                        # 真实入库（自动备份 DB）
+
+# 9. 全量 Excel vs DB 逐行 reconcile + DB 一致性诊断（DB 零写入，PRAGMA query_only）
+python one_time_pgms/reconcile_excel_vs_db.py --audit-only          # 仅跑任务 C 诊断
+python one_time_pgms/reconcile_excel_vs_db.py                        # 完整 reconcile，输出 reconcile_report.html
+
+# 10. 关于 L19 工时/单位信息保留规则（special_logic.py）
+# 当 计件数量 列出现 '1.5H'/'8H'/'24H'/'2套'/'3人8H'/'1台3H'/'1.5X'/'1天'/'1人半天' 等非数字字符串时，
+# 把字符串以 " (L19字符串)" 格式追加到 工序全名 列（若 工序全名 不存在则用 工序 列），
+# 例：'校正' → '校正 (1.5H)'，避免被 load_df_to_db 的 to_numeric(coerce).fillna(0.0) 强制转 0 导致信息丢失。
+# 已在 special_logic.py L19 实现。下次跑 batch_process.py 自动生效。
+# 验证：跑 reconcile 报告 "工时/单位信息保留 (L19) 诊断" 段会列出所有受影响行。

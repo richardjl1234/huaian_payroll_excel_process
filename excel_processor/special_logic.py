@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 import logging
 import os
@@ -53,7 +55,8 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
     operation_counts = {
         '前装拆分': 0,
         '中装替换': 0,
-        '后装替换': 0
+        '后装替换': 0,
+        '工时保留': 0
     }
     
     # 逻辑1: 当工作表名称（去除空格）是"喷漆装配"时，如果第一列是"前装"、"中装"、"后装"或"刘雷", "装配"，则替换列名为"职员全名"
@@ -149,7 +152,59 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
     if '任务名称' in df.columns:
         df = df.rename(columns={'任务名称': '客户名称'})
         log_logic(f"将列名 '任务名称' 替换为 '客户名称'")
-    
+
+    # 逻辑19: 当'计件数量'列是无法解析为数字的字符串（含数字 + 中文/H 单位）时，
+    # 把整字符串包装为 " (L19字符串)" 追加到 工序全名 列（若 工序全名 列不存在则用 工序 列）。
+    # 覆盖：'1.5H'/'8H'/'24H'（工时），'2套'/'1托'（量词），'3人8H'/'1台3H'/'1.5X'（混合）
+    # 排除：'1.0'/'1'/'1.5' 这类纯数字字符串 —— 直接转数字，不走 L19
+    # 原因：load_df_to_db 会执行 pd.to_numeric(errors='coerce').fillna(0.0)，
+    # 导致 "1.5H" 变成 0.0，信息丢失。提前把不可解析字符串挪到 工序全名/工序 列可避免丢失。
+    # 必须在 L14 之前执行：L14 拆分前装时若'计件数量'是 "1.5H"，to_numeric 会 NaN，金额会被记为"无效"丢一半
+    if '计件数量' in df.columns:
+        # 确定目标列：优先 工序全名，否则 工序；若两者都缺失则自动创建 工序
+        if '工序全名' in df.columns:
+            target_col = '工序全名'
+        elif '工序' in df.columns:
+            target_col = '工序'
+        else:
+            target_col = '工序'
+            df[target_col] = None
+        l19_count = 0
+        for idx in df.index:
+            qty = df.at[idx, '计件数量']
+            if qty is None:
+                continue
+            # 已经是数字（如 0.0、30）就跳过
+            if isinstance(qty, (int, float)) and not (isinstance(qty, float) and pd.isna(qty)):
+                continue
+            s = str(qty).strip()
+            if not s:
+                continue
+            # 必须包含至少一个数字（"abc" 这种纯字母不算 L19）
+            if not re.search(r'\d', s):
+                continue
+            # 纯数字字符串（"1.0"/"1"/"1.5"）→ 直接转数字，不走 L19
+            try:
+                float(s)
+                continue
+            except ValueError:
+                pass  # 不可解析 → L19
+            # 合并到目标列，格式：原值 + " (L19字符串)"；若原值为空则只有 "(L19字符串)"
+            target_val = df.at[idx, target_col]
+            if target_val is None or (isinstance(target_val, float) and pd.isna(target_val)):
+                target_str = ''
+            else:
+                target_str = str(target_val).rstrip()
+            if target_str:
+                df.at[idx, target_col] = f"{target_str} ({s})"
+            else:
+                df.at[idx, target_col] = f"({s})"
+            df.at[idx, '计件数量'] = 0.0
+            l19_count += 1
+        if l19_count > 0:
+            log_logic(f"工时信息保留 (L19): {l19_count} 行含工时/单位信息（如 '1.5H'/'2套'/'3人8H'）已合并到'{target_col}'列（带括号）")
+            operation_counts['工时保留'] = l19_count
+
     # 逻辑14: 当'职员全名'是'前装'或'前装人员'时，将记录拆分为2行
     if '职员全名' in df.columns and '计件数量' in df.columns and '金额' in df.columns:
         rows_to_add = []
