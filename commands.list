@@ -4,7 +4,11 @@
 export SQLITE_DB_PATH=/home/richard/shared/jianglei/payroll/payroll_database.db
 
 # 2. 端到端刷新（推荐入口：batch_process.py + 全部 9 步清洗）
-./sqlite_payroll_details_refresh.sh
+./sqlite_payroll_details_refresh.sh                                          # 交互模式（9 个 cleansing 步骤会逐个 prompt "请输入 yes"）
+yes yes | ./sqlite_payroll_details_refresh.sh                                # 自动模式：必须用 `yes yes`（不是 `yes`），CI/cron 友好
+# 注：GNU `yes` 不带参数时输出 'y\n'（不是 'yes\n'）—— `input()` 会拿到 'y'，导致 `confirm.strip().lower() == "yes"` 不匹配，脚本打印"已取消"并退出。
+#   必须显式 `yes yes` 才会输出 'yes\n'。每个 cleansing_*.py 恰好 1 个 input() 提示（共 9 个：step0,1,3,4,5,6,7,8,9），
+#   pipe 喂无限 "yes\n" 给所有子进程，无需担心被耗尽。
 
 # 3. 仅批量处理所有 Excel 文件
 python batch_process.py
@@ -32,6 +36,14 @@ python one_time_pgms/reconcile_excel_vs_db.py                        # 完整 re
 # 状态：OK (无差异) / TOL (hash 不等但 tolerance 解决) / WARN (tolerance 未解决)
 # Tolerance 不改 production pipeline（DB 14.09 与 Excel 14.08 差 0.01，用户接受）
 # 边界：< 改成 <= 是因为 14.084999... → 14.09 与 14.08 差正好 0.01
+
+# 9.1 提取 WARN 段到纯文本（reconcile_excel_vs_db.py 不自动生成）
+python one_time_pgms/extract_warn_full.py                             # 默认: reconcile_report.html → /tmp/warn_full.txt
+python one_time_pgms/extract_warn_full.py --section "Tolerance 匹配明细" --output /tmp/tol_full.txt  # TOL 段也可提取
+
+# 9.2 导出 payroll_summary 全部记录到单文件 HTML（带 姓名/工序/车间 文本过滤 + 文件下拉）
+python one_time_pgms/export_payroll_summary_html.py                  # 默认输出到 ./payroll_summary.html
+python one_time_pgms/export_payroll_summary_html.py --output /tmp/summary.html  # 改输出路径
 
 # 10. 关于 L19 工时/单位信息保留规则（special_logic.py）
 # 当 计件数量 列出现 '1.5H'/'8H'/'24H'/'2套'/'3人8H'/'1台3H'/'1.5X'/'1天'/'1人半天' 等非数字字符串时，

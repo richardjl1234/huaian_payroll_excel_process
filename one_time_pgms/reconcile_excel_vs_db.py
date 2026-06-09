@@ -11,7 +11,7 @@ reconcile_excel_vs_db.py — 一次性脚本：全量 Excel vs DB 逐行 reconci
 3. 每行 row_hash = SHA256(各字段用 \x1f 分隔，Decimal 量化，None 用 \x00 哨兵)
 4. 集合差集：漏行（excel 独有）/ 多行（db 独有）
 5. 跨文件 hash 碰撞：识别重复入库
-6. UNREADABLE 文件：标记 (new_payroll/202003.xls, 202109.xls)
+6. UNREADABLE 文件：动态检测（DB 有该 (file, sheet) 但 Excel pipeline 跑不出 hash → 文件/工作表损坏）
 7. DB 一致性诊断：装配误识别 / 系数异常 / 定额异常 / 小计残留 / 黄陈溯源
 
 输出：reconcile_report.html + reconcile_report.csv
@@ -33,8 +33,19 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = PROJECT_ROOT.parent / "payroll_database.db"
 
-# 损坏文件清单（已知）
-UNREADABLE_FILES = {"202003.xls", "202109.xls"}
+# 损坏文件检测：动态判断 —— DB 里有该 (file, sheet) 的行，但 Excel pipeline 跑不出任何 hash
+# （即 sheet_gen / df_gen / special_logic 阶段抛异常或返回空）。这比硬编码清单更准确，
+# 既能捕获之前漏标的"假损坏"文件（pipeline 实际能处理），也能在新增损坏文件时自动识别。
+# 注意：per-(file, sheet) 粒度。一个文件 5 个 sheet 中只有 1 个损坏，
+# 那个损坏的 sheet 会单独标 UNREADABLE，其他 4 个 sheet 正常参与 reconcile。
+def is_unreadable_key(key, excel_data, db_data):
+    """判断 (file_name, sheet_name) 是否 UNREADABLE（文件/工作表损坏）"""
+    return key in db_data and key not in excel_data
+
+
+def get_unreadable_keys(excel_data, db_data):
+    """返回所有 UNREADABLE 的 (file, sheet) 键集合"""
+    return {k for k in (set(db_data.keys()) - set(excel_data.keys()))}
 
 # 期望列（hash 字段）
 # 注意：日期列被排除 —— Excel 端是原始 `3·4·5` (中文点号) 格式，
@@ -502,16 +513,14 @@ def reconcile_excel_vs_db(excel_data, db_data):
         unmatched_extra = [r for r in extra_rows if id(r) not in used_extra_ids]
 
         # 状态判定
-        if file_name in UNREADABLE_FILES:
+        if is_unreadable_key(key, excel_data, db_data):
             status = "UNREADABLE"
         elif not missing_in_db and not extra_in_db:
             status = "OK"  # hash 差集本来就空
         elif not unmatched_missing and not unmatched_extra and tolerance_matched:
             status = "TOL"  # hash 有差，但 tolerance 全解决
-        elif tolerance_matched:
-            status = "TOL"  # 部分解决
         else:
-            status = "WARN"  # tolerance 没解决任何
+            status = "WARN"  # tolerance 解决了部分/没解决任何；或 tolerance_matched=0
 
         report.append({
             "file_name": file_name,
@@ -524,8 +533,8 @@ def reconcile_excel_vs_db(excel_data, db_data):
             "unmatched_missing": len(unmatched_missing),
             "unmatched_extra": len(unmatched_extra),
             "status": status,
-            "samples_missing": unmatched_missing[:3],
-            "samples_extra": unmatched_extra[:3],
+            "samples_missing": unmatched_missing,
+            "samples_extra": unmatched_extra,
             "samples_tolerance_matched": tolerance_matched[:5],
         })
 
@@ -747,7 +756,7 @@ def generate_html_report(reconcile_report, duplicates, audit_findings, load_log_
     if tol_rows:
         html.append("<h2>Tolerance 匹配明细 (|diff| &lt; 0.01 的行对)</h2>")
         html.append(f"<p>共 <b>{total_tol_matched}</b> 行 hash 不等但 tolerance 匹配。"
-                    f"下表展示每个 TOL/部分 TOL 文件的前 5 个 (Excel 端, DB 端) 对，"
+                    f"下表展示每个 TOL/WARN 文件的前 5 个 (Excel 端, DB 端) 对，"
                     f"仅显示差异数值列。</p>")
         html.append("<table><tr><th>文件 :: Sheet</th><th>Excel 端字段值</th><th>DB 端字段值</th><th>最大 |diff|</th></tr>")
         for r in tol_rows[:30]:
@@ -780,7 +789,7 @@ def generate_html_report(reconcile_report, duplicates, audit_findings, load_log_
     warn_rows = [r for r in reconcile_report if r["status"] == "WARN"]
     if warn_rows:
         html.append("<h2>WARN 详情 (tolerance 未解决的差异)</h2>")
-        for r in warn_rows[:10]:
+        for r in warn_rows:
             html.append(f"<h3>{r['file_name']} :: {r['sheet_name']}</h3>")
             html.append(f"<p>剩余漏行: {r.get('unmatched_missing', 0)}, 剩余多行: {r.get('unmatched_extra', 0)}, "
                         f"tolerance 已解决: {r.get('tolerance_matched', 0)}</p>")

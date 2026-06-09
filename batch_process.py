@@ -6,6 +6,7 @@ Refactored to reuse functions from sheet_gen and df_gen modules.
 """
 
 import os
+import fcntl
 import sqlite3
 import logging
 import sys
@@ -19,6 +20,47 @@ from excel_processor.config import setup_global_logging
 # Set up logging using global configuration
 setup_global_logging()
 logger = logging.getLogger(__name__)
+
+# File lock path: prevents concurrent batch_process.py runs from corrupting the DB.
+# Reason: clean_database_tables() does unconditional DELETE; two concurrent runs would
+# have one's DELETE wipe out the other's in-flight INSERTs (caused 5 historical row
+# losses over 112 runs — see reconcile_known_issues.md "根因及修复" #5).
+# fcntl.flock is released automatically when the process exits or is killed, so a
+# stale lock can only occur if the OS itself is killed mid-run, which we don't guard.
+BATCH_LOCK_PATH = "/tmp/payroll_batch.lock"
+
+
+def acquire_batch_lock():
+    """Acquire a non-blocking exclusive lock on BATCH_LOCK_PATH.
+
+    Returns the open file descriptor (caller keeps it alive for the run; the OS
+    releases the lock when the fd is closed, which happens at process exit).
+    If another batch_process.py is already running, logs an error and exits 1.
+    """
+    # Read any prior PID BEFORE truncating the file, so the error message can
+    # show who holds the lock. The "w" mode below truncates, so doing the read
+    # first is necessary to see the holder's PID.
+    prior_pid = None
+    try:
+        with open(BATCH_LOCK_PATH) as f:
+            prior_pid = f.read().strip() or None
+    except FileNotFoundError:
+        pass
+
+    lock_fd = open(BATCH_LOCK_PATH, "w")
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        lock_fd.close()
+        pid_str = f" (PID {prior_pid})" if prior_pid else ""
+        logger.error(
+            f"Another batch_process.py is already running{pid_str}. "
+            f"Exiting to avoid DB corruption from concurrent DELETE+INSERT."
+        )
+        sys.exit(1)
+    lock_fd.write(f"{os.getpid()}\n")
+    lock_fd.flush()
+    return lock_fd
 
 
 
@@ -136,7 +178,11 @@ def process_single_file(file_name: str):
 
 if __name__ == "__main__":
     import sys
-    
+
+    # Acquire exclusive lock BEFORE any DB work (covers both batch and single-file mode).
+    # Released automatically on process exit. See acquire_batch_lock() for context.
+    _batch_lock_fd = acquire_batch_lock()
+
     # Check for command line parameter
     if len(sys.argv) > 1:
         # Process single file mode
