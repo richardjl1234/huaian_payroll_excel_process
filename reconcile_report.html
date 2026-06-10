@@ -1,0 +1,1470 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'>
+<title>Reconcile Report - Excel vs DB</title>
+<style>
+body{font-family:sans-serif;margin:20px;}
+h1{color:#06c;}
+h2{background:#eef;padding:8px;border-left:4px solid #06c;margin-top:30px;}
+table{border-collapse:collapse;margin:10px 0;font-size:13px;}
+th,td{border:1px solid #ccc;padding:4px 8px;text-align:left;}
+th{background:#f5f5f5;}
+.OK{color:green;font-weight:bold;}
+.TOL{color:#06c;font-weight:bold;}
+.WARN{color:#c80;font-weight:bold;}
+.UNREADABLE{color:red;font-weight:bold;}
+.summary{background:#f9f9f9;padding:15px;border-radius:4px;margin:15px 0;}
+</style></head><body>
+<h1>Reconcile 报告 - Excel vs SQLite payroll_details</h1>
+<p>生成时间: 2026-06-10 21:57:32</p>
+<div class='summary'>
+<h3>📊 汇总指标</h3>
+<ul>
+<li>涉及文件: <b>134</b></li>
+<li>OK (无差异): <b class='OK'>261</b></li>
+<li>TOL (tolerance 解决全部差异): <b class='TOL'>80</b></li>
+<li>WARN (tolerance 未解决剩余差异): <b class='WARN'>57</b></li>
+<li>UNREADABLE (损坏文件): <b class='UNREADABLE'>0</b></li>
+<li>Hash 漏行 (Excel 有 / DB 无): <b>637</b></li>
+<li>Hash 多行 (DB 有 / Excel 无): <b>320</b></li>
+<li>Tolerance 匹配 (|diff| < 0.01): <b class='TOL'>320</b></li>
+<li>剩余真实漏行 (tolerance 后): <b class='WARN'>317</b></li>
+<li>剩余真实多行 (tolerance 后): <b class='WARN'>0</b></li>
+<li>跨文件重复 (content_hash 相同): <b>26276</b></li>
+</ul>
+<p><i>注: TOL 状态表示 hash 不等但 |数值 diff| &lt; 0.01 的行被自动匹配（用户接受 tolerance）；WARN 状态表示 tolerance 未能解决、需人工审查的差异。</i></p>
+</div>
+<h2>DB 内部一致性诊断 (Task C)</h2>
+<table><tr><th>类别</th><th>项目</th><th>数量</th><th>说明</th><th>影响</th></tr>
+<tr><td>职员误识别</td><td>`装配` 被识别为职员全名</td><td><b>15960</b></td><td>L1 规则把首列 `装配` 改名为 `职员全名`，但 `装配` 是工序名不是员工名</td><td>按 职员全名 聚合统计时混入虚假员工</td></tr>
+<tr><td>数值异常</td><td>系数 > 2 或 < 0</td><td><b>5970</b></td><td>系数正常范围 0-2；实际范围 2.50 ~ 22.00</td><td>可能误录入或列错位</td></tr>
+<tr><td>数值异常</td><td>定额 > 100</td><td><b>1455</b></td><td>定额最大值 600.00；可能混入其他数值列</td><td>影响金额计算正确性</td></tr>
+<tr><td>L14 拆分</td><td>黄志梅 == 陈会清 数据完全相同</td><td><b>14568</b></td><td>两人各 14568 行，总金额 490114.72 / 490114.72；来自 special_logic L14 `前装` 拆 2 行</td><td>业务合理（按工作量平分），不修</td></tr>
+<tr><td>数据异常</td><td>金额=0 但计件数量≠0</td><td><b>17828</b></td><td>可能 #VALUE! 错误被 xlrd 吞掉变 0</td><td>工资计算结果错误</td></tr>
+</table>
+<h2>工时/单位信息保留 (L19) 诊断</h2>
+<p>Excel pipeline 输出中，<b>工序全名 / 工序</b> 列尾部被 L19 附加了 <code>" (L19字符串)"</code> 格式（工时/单位信息，如 " (1.5H)"/" (8H)"/" (24H)"/" (2套)"/" (3人8H)"/" (1台3H)"）的行共 <b>5509</b> 行。</p>
+<p>涉及 <b>98</b> 个文件。下表展示前 20 行：</p>
+<table><tr><th>文件</th><th>sheet</th><th>姓名</th><th>客户</th><th>型号</th><th>工序列</th><th>工序 (含 L19 后缀)</th><th>计件数量</th></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td></td><td>出口电机上货</td><td>工序全名</td><td><code>(1.5H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>滕州</td><td>132S1-6</td><td>工序全名</td><td><code>校正 (8H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>刘步凡</td><td></td><td>出口电机上货</td><td>工序全名</td><td><code>(1.5H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>刘步凡</td><td></td><td>修车床</td><td>工序全名</td><td><code>(8H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>李海建</td><td></td><td>出口电机打包</td><td>工序全名</td><td><code>(8H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>李海建</td><td></td><td>出口电机上货</td><td>工序全名</td><td><code>(1.5H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>李海建</td><td></td><td>修车床</td><td>工序全名</td><td><code>(3H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>李海建</td><td></td><td>门卫夜班</td><td>工序全名</td><td><code>(14.5H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>李海建</td><td></td><td>门卫</td><td>工序全名</td><td><code>(24H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>崔礼军</td><td></td><td>出口电机上货</td><td>工序全名</td><td><code>(1.5H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>崔礼军</td><td>滕州</td><td>辅助校正132S1-6转子</td><td>工序全名</td><td><code>(8H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>崔礼军</td><td>滕州</td><td>辅助校正132S1-6转子</td><td>工序全名</td><td><code>(4H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>贾登峰</td><td></td><td>71BJ2后盖+背板</td><td>工序全名</td><td><code>打孔攻丝+装 (2套)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>贾登峰</td><td></td><td>80BJ3后盖+背板</td><td>工序全名</td><td><code>打孔攻丝+装 (7套)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>贾登峰</td><td></td><td>160B5法兰配钢套</td><td>工序全名</td><td><code>车 (15套)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>贾登峰</td><td></td><td>焊油田用试验台</td><td>工序全名</td><td><code>(4H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>贾登峰</td><td></td><td>出口电机打包</td><td>工序全名</td><td><code>(8H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>贾登峰</td><td></td><td>出口电机上货</td><td>工序全名</td><td><code>(1.5H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>贾登峰</td><td>旭普</td><td>132转子</td><td>工序全名</td><td><code>校正 (4H)</code></td><td>0.00</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>装配</td><td></td><td>试验QL90</td><td>工序全名</td><td><code>(2人4H)</code></td><td>0.00</td></tr>
+<tr><td colspan=8>... 还有 5489 行 ...</td></tr>
+</table>
+<p>✅ DB 中已检测到 <b>5511</b> 行，Excel pipeline 输出 <b>5509</b> 行。DB 比 Excel 多 <b>2</b> 行（可能有重复入库或 Excel pipeline 处理差异）。</p>
+<h2>跨文件重复入库检测</h2>
+<p>⚠️ 发现 <b>26276</b> 组 content_hash 出现在多个文件 (疑似重复入库)</p>
+<table><tr><th>content_hash</th><th>涉及文件数</th><th>文件列表</th></tr>
+<tr><td><code>296d708e082071a5...</code></td><td>2</td><td>201406.xls, 201407_1.xls</td></tr>
+<tr><td><code>8ffe0344bffff07f...</code></td><td>2</td><td>201406.xls, 201503.xls</td></tr>
+<tr><td><code>d0958230edac0334...</code></td><td>6</td><td>201406.xls, 201407_1.xls, 201409.xls, 201410.xls, 201501.xls...</td></tr>
+<tr><td><code>c57d89c5ba2ddb53...</code></td><td>3</td><td>201406.xls, 201506.xls, 201507.xls</td></tr>
+<tr><td><code>7db90a43e12d8c70...</code></td><td>2</td><td>201406.xls, 201504.xls</td></tr>
+<tr><td><code>bbb6fd5d49529064...</code></td><td>3</td><td>201406.xls, 201409.xls, 201506.xls</td></tr>
+<tr><td><code>76028aa216bebbb3...</code></td><td>2</td><td>201406.xls, 201408.xls</td></tr>
+<tr><td><code>41f84b45db31cc27...</code></td><td>10</td><td>201406.xls, 201407_1.xls, 201408.xls, 201409.xls, 201501.xls...</td></tr>
+<tr><td><code>0565cabd248a0283...</code></td><td>4</td><td>201406.xls, 201411.xls, 201505.xls, 201506.xls</td></tr>
+<tr><td><code>2c64c82defdf3baa...</code></td><td>2</td><td>201406.xls, 201504.xls</td></tr>
+<tr><td><code>fb15717a82dff534...</code></td><td>2</td><td>201406.xls, 201505.xls</td></tr>
+<tr><td><code>c22463fc85ff1e29...</code></td><td>2</td><td>201406.xls, 201502.xls</td></tr>
+<tr><td><code>e60e0f5891b53832...</code></td><td>4</td><td>201406.xls, 201504.xls, 201506.xls, 201507.xls</td></tr>
+<tr><td><code>5749c81ebfd5300d...</code></td><td>3</td><td>201406.xls, 201407_1.xls, 201504.xls</td></tr>
+<tr><td><code>2c5a90e578740395...</code></td><td>5</td><td>201406.xls, 201501.xls, 201503.xls, 201506.xls, 201507.xls</td></tr>
+<tr><td><code>da272b0cab94d1cb...</code></td><td>2</td><td>201406.xls, 201411.xls</td></tr>
+<tr><td><code>c3618de7ac6a6752...</code></td><td>3</td><td>201406.xls, 201504.xls, 201506.xls</td></tr>
+<tr><td><code>fee333039026db6e...</code></td><td>2</td><td>201406.xls, 201409.xls</td></tr>
+<tr><td><code>33ea82a08a70ff8b...</code></td><td>2</td><td>201406.xls, 201407_1.xls</td></tr>
+<tr><td><code>73e20fe10f6073a6...</code></td><td>3</td><td>201406.xls, 201503.xls, 201504.xls</td></tr>
+</table>
+<h2>load_log 状态</h2>
+<p>load_log 共 <b>38</b> 条记录</p>
+<table><tr><th>file_name</th><th>sheet_name</th><th>table_index</th><th>discarded_columns</th><th>discarded_cols_num</th></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>1</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>2</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>3</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>4</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>5</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>6</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>1</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>2</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>3</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>1</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>2</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>3</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>4</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>5</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>6</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>7</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>8</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>9</td><td>工序编号</td><td>1</td></tr>
+<tr><td>201505.xls</td><td>绕嵌排</td><td>2</td><td>63-160, 乘系数定额, 乘系数合计金额</td><td>3</td></tr>
+<tr><td>201505.xls</td><td>绕嵌排</td><td>3</td><td>63-160, 乘系数定额, 乘系数合计金额</td><td>3</td></tr>
+<tr><td>201505.xls</td><td>绕嵌排</td><td>4</td><td>63-160, 乘系数定额, 乘系数合计金额</td><td>3</td></tr>
+<tr><td>201505.xls</td><td>绕嵌排</td><td>5</td><td>63-160, 乘系数定额, 乘系数合计金额</td><td>3</td></tr>
+<tr><td>201505.xls</td><td>绕嵌排</td><td>6</td><td>63-90, 密扎, 乘系数定额, 乘系数合计金额</td><td>4</td></tr>
+<tr><td>201505.xls</td><td>绕嵌排</td><td>7</td><td>63-90, 密扎, 乘系数定额, 乘系数合计金额</td><td>4</td></tr>
+<tr><td>201505.xls</td><td>绕嵌排</td><td>8</td><td>63-90, 密扎, 乘系数定额, 乘系数合计金额</td><td>4</td></tr>
+<tr><td>201506.xls</td><td>绕嵌排</td><td>6</td><td>未乘系数金额</td><td>1</td></tr>
+<tr><td>201506.xls</td><td>绕嵌排</td><td>7</td><td>未乘系数金额</td><td>1</td></tr>
+<tr><td>201506.xls</td><td>绕嵌排</td><td>8</td><td>未乘系数金额</td><td>1</td></tr>
+<tr><td>201508.xls</td><td>绕嵌排</td><td>8</td><td>乘系数金额</td><td>1</td></tr>
+<tr><td>201508.xls</td><td>绕嵌排</td><td>9</td><td>乘系数金额</td><td>1</td></tr>
+</table>
+<h2>文件级 Reconcile 详情</h2>
+<table><tr><th>文件</th><th>Sheet</th><th>Excel 行数</th><th>DB 行数</th><th>Hash 漏行</th><th>Hash 多行</th><th>Tolerance 匹配</th><th>剩余漏行</th><th>剩余多行</th><th>状态</th></tr>
+<tr><td>201406.xls</td><td>精加工</td><td>470</td><td>470</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201406.xls</td><td>绕嵌排</td><td>596</td><td>596</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>487</td><td>487</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201407_1.xls</td><td>精加工</td><td>535</td><td>535</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201407_1.xls</td><td>绕嵌排</td><td>763</td><td>763</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201407_1.xls</td><td>装配喷漆</td><td>604</td><td>604</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201408.xls</td><td>精加工</td><td>508</td><td>508</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201408.xls</td><td>绕嵌排</td><td>720</td><td>720</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201408.xls</td><td>装配喷漆</td><td>637</td><td>637</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201409.xls</td><td>精加工</td><td>432</td><td>432</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201409.xls</td><td>绕嵌排</td><td>674</td><td>674</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201409.xls</td><td>装配喷漆</td><td>626</td><td>626</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201410.xls</td><td>精加工</td><td>323</td><td>323</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201410.xls</td><td>绕嵌排</td><td>502</td><td>502</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201410.xls</td><td>装配喷漆</td><td>445</td><td>445</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201411.xls</td><td>精加工</td><td>347</td><td>347</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201411.xls</td><td>绕嵌排</td><td>601</td><td>601</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201411.xls</td><td>装配喷漆</td><td>567</td><td>567</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201501.xls</td><td>精加工</td><td>404</td><td>404</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201501.xls</td><td>绕嵌排</td><td>563</td><td>563</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201501.xls</td><td>装配喷漆</td><td>568</td><td>456</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201502.xls</td><td>精加工</td><td>226</td><td>226</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201502.xls</td><td>绕嵌排</td><td>321</td><td>321</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201502.xls</td><td>装配喷漆</td><td>257</td><td>256</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201503.xls</td><td>精加工</td><td>487</td><td>487</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201503.xls</td><td>绕嵌排</td><td>752</td><td>752</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201503.xls</td><td>装配喷漆</td><td>600</td><td>600</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201504.xls</td><td>精加工</td><td>590</td><td>590</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201504.xls</td><td>绕嵌排</td><td>739</td><td>739</td><td>8</td><td>8</td><td>8</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201504.xls</td><td>装配喷漆</td><td>641</td><td>641</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201505.xls</td><td>精加工</td><td>494</td><td>494</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201505.xls</td><td>绕嵌排</td><td>724</td><td>724</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201505.xls</td><td>装配喷漆</td><td>575</td><td>575</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201506.xls</td><td>精加工</td><td>540</td><td>540</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201506.xls</td><td>绕嵌排</td><td>804</td><td>804</td><td>4</td><td>4</td><td>4</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201506.xls</td><td>装配喷漆</td><td>579</td><td>579</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201507.xls</td><td>精加工</td><td>442</td><td>442</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201507.xls</td><td>绕嵌排</td><td>652</td><td>652</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201507.xls</td><td>装配喷漆</td><td>630</td><td>630</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201508.xls</td><td>精加工</td><td>348</td><td>348</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201508.xls</td><td>绕嵌排</td><td>818</td><td>818</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201508.xls</td><td>装配喷漆</td><td>633</td><td>633</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201509.xlsx</td><td>精加工</td><td>317</td><td>317</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201509.xlsx</td><td>绕嵌排</td><td>942</td><td>942</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201509.xlsx</td><td>装配喷漆</td><td>729</td><td>729</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201510.xls</td><td>精加工</td><td>740</td><td>740</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201510.xls</td><td>绕嵌排</td><td>1181</td><td>1181</td><td>4</td><td>4</td><td>4</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201510.xls</td><td>装配喷漆</td><td>862</td><td>862</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201511.xls</td><td>精加工</td><td>631</td><td>631</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201511.xls</td><td>绕嵌排</td><td>813</td><td>813</td><td>5</td><td>5</td><td>5</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201511.xls</td><td>装配喷漆</td><td>762</td><td>762</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201512.xls</td><td>精加工</td><td>718</td><td>717</td><td>2</td><td>1</td><td>1</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201512.xls</td><td>绕嵌排</td><td>905</td><td>905</td><td>8</td><td>8</td><td>8</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201512.xls</td><td>装配喷漆</td><td>919</td><td>919</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201601.xls</td><td>精加工</td><td>664</td><td>664</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201601.xls</td><td>绕嵌排</td><td>959</td><td>959</td><td>4</td><td>4</td><td>4</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201601.xls</td><td>装配喷漆</td><td>664</td><td>664</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201602.xls</td><td>精加工</td><td>411</td><td>411</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201602.xls</td><td>绕嵌排</td><td>589</td><td>589</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201602.xls</td><td>装配喷漆</td><td>394</td><td>394</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201603.xls</td><td>精加工</td><td>745</td><td>740</td><td>4</td><td>0</td><td>0</td><td>4</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201603.xls</td><td>绕嵌排</td><td>1045</td><td>1045</td><td>4</td><td>4</td><td>4</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201603.xls</td><td>装配喷漆</td><td>771</td><td>767</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201604.xls</td><td>精加工</td><td>667</td><td>652</td><td>10</td><td>0</td><td>0</td><td>10</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201604.xls</td><td>绕嵌排</td><td>995</td><td>971</td><td>37</td><td>16</td><td>16</td><td>21</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201604.xls</td><td>装配喷漆</td><td>951</td><td>944</td><td>3</td><td>0</td><td>0</td><td>3</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201605.xls</td><td>精加工</td><td>714</td><td>704</td><td>10</td><td>0</td><td>0</td><td>10</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201605.xls</td><td>绕嵌排</td><td>1145</td><td>1120</td><td>31</td><td>7</td><td>7</td><td>24</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201605.xls</td><td>装配喷漆</td><td>856</td><td>847</td><td>8</td><td>0</td><td>0</td><td>8</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201606.xls</td><td>精加工</td><td>659</td><td>648</td><td>6</td><td>0</td><td>0</td><td>6</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201606.xls</td><td>绕嵌排</td><td>907</td><td>890</td><td>25</td><td>9</td><td>9</td><td>16</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201606.xls</td><td>装配喷漆</td><td>717</td><td>714</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201607.xls</td><td>精加工</td><td>770</td><td>757</td><td>9</td><td>1</td><td>1</td><td>8</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201607.xls</td><td>绕嵌排</td><td>992</td><td>968</td><td>37</td><td>17</td><td>17</td><td>20</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201607.xls</td><td>装配喷漆</td><td>792</td><td>788</td><td>3</td><td>1</td><td>1</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201608.xls</td><td>精加工</td><td>634</td><td>618</td><td>16</td><td>1</td><td>1</td><td>15</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201608.xls</td><td>绕嵌排</td><td>734</td><td>716</td><td>18</td><td>4</td><td>4</td><td>14</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201608.xls</td><td>装配喷漆</td><td>856</td><td>850</td><td>6</td><td>0</td><td>0</td><td>6</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201609.xls</td><td>精加工</td><td>662</td><td>650</td><td>11</td><td>0</td><td>0</td><td>11</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201609.xls</td><td>绕嵌排</td><td>781</td><td>768</td><td>14</td><td>1</td><td>1</td><td>13</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201609.xls</td><td>装配喷漆</td><td>750</td><td>743</td><td>7</td><td>0</td><td>0</td><td>7</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201610.xls</td><td>精加工</td><td>452</td><td>437</td><td>9</td><td>0</td><td>0</td><td>9</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201610.xls</td><td>绕嵌排</td><td>705</td><td>691</td><td>13</td><td>0</td><td>0</td><td>13</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201610.xls</td><td>装配喷漆</td><td>581</td><td>574</td><td>4</td><td>1</td><td>1</td><td>3</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201611.xls</td><td>精加工</td><td>592</td><td>579</td><td>9</td><td>0</td><td>0</td><td>9</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201611.xls</td><td>绕嵌排</td><td>1214</td><td>1200</td><td>13</td><td>0</td><td>0</td><td>13</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201611.xls</td><td>装配喷漆</td><td>851</td><td>843</td><td>4</td><td>1</td><td>1</td><td>3</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201701.xls</td><td>精加工</td><td>449</td><td>433</td><td>9</td><td>0</td><td>0</td><td>9</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201701.xls</td><td>绕嵌排</td><td>577</td><td>563</td><td>14</td><td>1</td><td>1</td><td>13</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201701.xls</td><td>装配喷漆</td><td>473</td><td>468</td><td>2</td><td>0</td><td>0</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201702.xls</td><td>精加工</td><td>553</td><td>553</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201702.xls</td><td>绕嵌排</td><td>775</td><td>775</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201702.xls</td><td>装配喷漆</td><td>426</td><td>426</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201703.xls</td><td>精加工</td><td>747</td><td>747</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201703.xls</td><td>绕嵌排</td><td>797</td><td>797</td><td>5</td><td>5</td><td>5</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201703.xls</td><td>装配喷漆</td><td>690</td><td>690</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201704.xls</td><td>精加工</td><td>560</td><td>560</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201704.xls</td><td>绕嵌排</td><td>722</td><td>722</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201704.xls</td><td>装配喷漆</td><td>597</td><td>597</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201705.xls</td><td>精加工</td><td>642</td><td>642</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201705.xls</td><td>绕嵌排</td><td>1070</td><td>1070</td><td>5</td><td>5</td><td>5</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201705.xls</td><td>装配喷漆</td><td>660</td><td>660</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201706.xls</td><td>精加工</td><td>637</td><td>637</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201706.xls</td><td>绕嵌排</td><td>816</td><td>816</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201706.xls</td><td>装配喷漆</td><td>712</td><td>712</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201707.xls</td><td>精加工</td><td>568</td><td>568</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201707.xls</td><td>绕嵌排</td><td>952</td><td>952</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201707.xls</td><td>装配喷漆</td><td>753</td><td>753</td><td>4</td><td>4</td><td>4</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201708.xls</td><td>精加工</td><td>627</td><td>627</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201708.xls</td><td>绕嵌排</td><td>1166</td><td>1166</td><td>5</td><td>5</td><td>5</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201708.xls</td><td>装配喷漆</td><td>880</td><td>879</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201709.xls</td><td>精加工</td><td>806</td><td>806</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201709.xls</td><td>绕嵌排</td><td>1129</td><td>1129</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201709.xls</td><td>装配喷漆</td><td>807</td><td>807</td><td>4</td><td>4</td><td>4</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201710.xls</td><td>精加工</td><td>570</td><td>570</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201710.xls</td><td>绕嵌排</td><td>904</td><td>904</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201710.xls</td><td>装配喷漆</td><td>812</td><td>812</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201711.xls</td><td>精加工</td><td>763</td><td>763</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201711.xls</td><td>绕嵌排</td><td>1154</td><td>1154</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201711.xls</td><td>装配喷漆</td><td>1133</td><td>1132</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201712.xls</td><td>精加工</td><td>839</td><td>839</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201712.xls</td><td>绕嵌排</td><td>1106</td><td>1106</td><td>6</td><td>6</td><td>6</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201712.xls</td><td>装配喷漆</td><td>1112</td><td>1112</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201801.xls</td><td>精加工</td><td>718</td><td>718</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201801.xls</td><td>绕嵌排</td><td>1083</td><td>1083</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201801.xls</td><td>装配喷漆</td><td>1053</td><td>1053</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201802.xls</td><td>精加工</td><td>411</td><td>411</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201802.xls</td><td>绕嵌排</td><td>812</td><td>812</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201802.xls</td><td>装配喷漆</td><td>544</td><td>544</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201803.xls</td><td>精加工</td><td>880</td><td>880</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201803.xls</td><td>绕嵌排</td><td>1437</td><td>1437</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201803.xls</td><td>装配喷漆</td><td>1089</td><td>1089</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201804.xls</td><td>精加工</td><td>783</td><td>783</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201804.xls</td><td>绕嵌排</td><td>1300</td><td>1299</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201804.xls</td><td>装配喷漆</td><td>1016</td><td>1016</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201805.xls</td><td>精加工</td><td>778</td><td>778</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201805.xls</td><td>绕嵌排</td><td>954</td><td>953</td><td>11</td><td>10</td><td>10</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201805.xls</td><td>装配喷漆</td><td>1007</td><td>1007</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201806.xls</td><td>精加工</td><td>633</td><td>633</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201806.xls</td><td>绕嵌排</td><td>704</td><td>703</td><td>5</td><td>4</td><td>4</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201806.xls</td><td>装配喷漆</td><td>822</td><td>822</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201807.xls</td><td>精加工</td><td>548</td><td>548</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201807.xls</td><td>绕嵌排</td><td>651</td><td>650</td><td>9</td><td>8</td><td>8</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201807.xls</td><td>装配喷漆</td><td>756</td><td>756</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201808.xls</td><td>精加工</td><td>630</td><td>630</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201808.xls</td><td>绕嵌排</td><td>808</td><td>807</td><td>4</td><td>3</td><td>3</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201808.xls</td><td>装配喷漆</td><td>860</td><td>860</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201809.xls</td><td>精加工</td><td>482</td><td>482</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201809.xls</td><td>绕嵌排</td><td>674</td><td>673</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201809.xls</td><td>装配喷漆</td><td>742</td><td>742</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201810.xls</td><td>精加工</td><td>387</td><td>387</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201810.xls</td><td>绕嵌排</td><td>633</td><td>631</td><td>8</td><td>6</td><td>6</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201810.xls</td><td>装配喷漆</td><td>619</td><td>619</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201811.xls</td><td>精加工</td><td>585</td><td>585</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201811.xls</td><td>绕嵌排</td><td>684</td><td>682</td><td>3</td><td>1</td><td>1</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201811.xls</td><td>装配喷漆</td><td>848</td><td>848</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201812.xls</td><td>精加工</td><td>721</td><td>721</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201812.xls</td><td>绕嵌排</td><td>958</td><td>956</td><td>16</td><td>14</td><td>14</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201812.xls</td><td>装配喷漆</td><td>1014</td><td>1014</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201901.xls</td><td>精加工</td><td>541</td><td>541</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201901.xls</td><td>绕嵌排</td><td>869</td><td>867</td><td>5</td><td>3</td><td>3</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201901.xls</td><td>装配喷漆</td><td>962</td><td>962</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201901_1.xls</td><td>精加工</td><td>29</td><td>29</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201902.xls</td><td>精加工</td><td>300</td><td>300</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201902.xls</td><td>绕嵌排</td><td>553</td><td>551</td><td>10</td><td>8</td><td>8</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201902.xls</td><td>装配喷漆</td><td>374</td><td>374</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201903.xls</td><td>精加工</td><td>558</td><td>558</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201903.xls</td><td>绕嵌排</td><td>891</td><td>889</td><td>7</td><td>5</td><td>5</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201903.xls</td><td>装配喷漆</td><td>815</td><td>815</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201904.xls</td><td>精加工</td><td>483</td><td>483</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201904.xls</td><td>绕嵌排</td><td>812</td><td>810</td><td>7</td><td>5</td><td>5</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201904.xls</td><td>装配喷漆</td><td>794</td><td>794</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201905.xls</td><td>精加工</td><td>558</td><td>558</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201905.xls</td><td>绕嵌排</td><td>762</td><td>761</td><td>5</td><td>4</td><td>4</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>201905.xls</td><td>装配喷漆</td><td>846</td><td>846</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201906.xls</td><td>精加工</td><td>615</td><td>615</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201906.xls</td><td>绕嵌排</td><td>791</td><td>791</td><td>4</td><td>4</td><td>4</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201906.xls</td><td>装配喷漆</td><td>746</td><td>746</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201907.xls</td><td>精加工</td><td>711</td><td>711</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201907.xls</td><td>绕嵌排</td><td>775</td><td>775</td><td>7</td><td>7</td><td>7</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201907.xls</td><td>装配喷漆</td><td>1015</td><td>1015</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201908.xls</td><td>精加工</td><td>636</td><td>636</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201908.xls</td><td>绕嵌排</td><td>726</td><td>726</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201908.xls</td><td>装配喷漆</td><td>943</td><td>943</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201909.xls</td><td>精加工</td><td>545</td><td>545</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201909.xls</td><td>绕嵌排</td><td>640</td><td>640</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201909.xls</td><td>装配喷漆</td><td>828</td><td>828</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201910.xls</td><td>精加工</td><td>523</td><td>523</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201910.xls</td><td>绕嵌排</td><td>737</td><td>737</td><td>6</td><td>6</td><td>6</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201910.xls</td><td>装配喷漆</td><td>747</td><td>747</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201911.xls</td><td>精加工</td><td>571</td><td>571</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201911.xls</td><td>绕嵌排</td><td>803</td><td>803</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201911.xls</td><td>装配喷漆</td><td>829</td><td>829</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201912.xls</td><td>精加工</td><td>628</td><td>628</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>201912.xls</td><td>绕嵌排</td><td>657</td><td>657</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>201912.xls</td><td>装配喷漆</td><td>845</td><td>845</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202001.xls</td><td>精加工</td><td>336</td><td>336</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202001.xls</td><td>绕嵌排</td><td>435</td><td>435</td><td>5</td><td>5</td><td>5</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202001.xls</td><td>装配喷漆</td><td>456</td><td>456</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202002.xls</td><td>精加工</td><td>184</td><td>184</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202002.xls</td><td>绕嵌排</td><td>209</td><td>209</td><td>5</td><td>5</td><td>5</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202002.xls</td><td>装配喷漆</td><td>258</td><td>258</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202003.xls</td><td>精加工</td><td>566</td><td>566</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202003.xls</td><td>绕嵌排</td><td>712</td><td>712</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202003.xls</td><td>装配喷漆</td><td>903</td><td>903</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202004.xls</td><td>精加工</td><td>536</td><td>536</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202004.xls</td><td>绕嵌排</td><td>663</td><td>663</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202004.xls</td><td>装配喷漆</td><td>1021</td><td>1021</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202005.xls</td><td>精加工</td><td>413</td><td>413</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202005.xls</td><td>绕嵌排</td><td>412</td><td>412</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202005.xls</td><td>装配喷漆</td><td>618</td><td>618</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202006.xls</td><td>精加工</td><td>439</td><td>439</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202006.xls</td><td>绕嵌排</td><td>530</td><td>530</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202006.xls</td><td>装配喷漆</td><td>743</td><td>743</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202007.xls</td><td>精加工</td><td>393</td><td>393</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202007.xls</td><td>绕嵌排</td><td>466</td><td>466</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202007.xls</td><td>装配喷漆</td><td>650</td><td>650</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202008.xls</td><td>精加工</td><td>448</td><td>448</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202008.xls</td><td>绕嵌排</td><td>482</td><td>482</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202008.xls</td><td>装配喷漆</td><td>843</td><td>843</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202009.xls</td><td>精加工</td><td>469</td><td>469</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202009.xls</td><td>绕嵌排</td><td>659</td><td>659</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202009.xls</td><td>装配喷漆</td><td>913</td><td>913</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202010.xls</td><td>精加工</td><td>387</td><td>387</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202010.xls</td><td>绕嵌排</td><td>549</td><td>549</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202010.xls</td><td>装配喷漆</td><td>849</td><td>849</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202011.xls</td><td>精加工</td><td>548</td><td>548</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202011.xls</td><td>绕嵌排</td><td>656</td><td>656</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202011.xls</td><td>装配喷漆</td><td>986</td><td>985</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202012.xlsx</td><td>精加工</td><td>450</td><td>450</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202012.xlsx</td><td>绕嵌排</td><td>535</td><td>535</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202012.xlsx</td><td>装配喷漆</td><td>868</td><td>868</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202101.xls</td><td>精加工</td><td>518</td><td>518</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202101.xls</td><td>绕嵌排</td><td>477</td><td>477</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202101.xls</td><td>装配喷漆</td><td>1037</td><td>1037</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202102.xls</td><td>精加工</td><td>309</td><td>309</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202102.xls</td><td>绕嵌排</td><td>298</td><td>298</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202102.xls</td><td>装配喷漆</td><td>565</td><td>565</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202103.xls</td><td>精加工</td><td>524</td><td>524</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202103.xls</td><td>绕嵌排</td><td>669</td><td>669</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202103.xls</td><td>装配喷漆</td><td>1137</td><td>1137</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202103_1.xls</td><td>装配喷漆</td><td>128</td><td>128</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202104.xls</td><td>精加工</td><td>443</td><td>443</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202104.xls</td><td>绕嵌排</td><td>594</td><td>594</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202104.xls</td><td>装配喷漆</td><td>1112</td><td>1110</td><td>2</td><td>0</td><td>0</td><td>2</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202105.xls</td><td>精加工</td><td>486</td><td>486</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202105.xls</td><td>绕嵌排</td><td>553</td><td>553</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202105.xls</td><td>装配喷漆</td><td>910</td><td>909</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202106.xls</td><td>精加工</td><td>478</td><td>478</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202106.xls</td><td>绕嵌排</td><td>488</td><td>488</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202106.xls</td><td>装配喷漆</td><td>824</td><td>824</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202107.xls</td><td>精加工</td><td>426</td><td>426</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202107.xls</td><td>绕嵌排</td><td>494</td><td>494</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202107.xls</td><td>装配喷漆</td><td>765</td><td>765</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202108.xls</td><td>精加工</td><td>560</td><td>560</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202108.xls</td><td>绕嵌排</td><td>581</td><td>581</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202108.xls</td><td>装配喷漆</td><td>970</td><td>969</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202109.xls</td><td>精加工</td><td>453</td><td>453</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202109.xls</td><td>绕嵌排</td><td>493</td><td>493</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202109.xls</td><td>装配喷漆</td><td>719</td><td>719</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202110.xls</td><td>精加工</td><td>351</td><td>351</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202110.xls</td><td>绕嵌排</td><td>398</td><td>398</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202110.xls</td><td>装配喷漆</td><td>613</td><td>613</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202111.xls</td><td>精加工</td><td>432</td><td>432</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202111.xls</td><td>绕嵌排</td><td>448</td><td>448</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202111.xls</td><td>装配喷漆</td><td>692</td><td>691</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202112.xls</td><td>精加工</td><td>546</td><td>546</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202112.xls</td><td>绕嵌排</td><td>472</td><td>472</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202112.xls</td><td>装配喷漆</td><td>850</td><td>849</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202201.xls</td><td>精加工</td><td>744</td><td>744</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202201.xls</td><td>绕嵌排</td><td>378</td><td>378</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202201.xls</td><td>装配喷漆</td><td>659</td><td>659</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202202.xls</td><td>精加工</td><td>425</td><td>425</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202202.xls</td><td>绕嵌排</td><td>413</td><td>413</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202202.xls</td><td>装配喷漆</td><td>568</td><td>567</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202203.xls</td><td>精加工</td><td>474</td><td>474</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202203.xls</td><td>绕嵌排</td><td>628</td><td>628</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202203.xls</td><td>装配喷漆</td><td>965</td><td>962</td><td>4</td><td>1</td><td>1</td><td>3</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202204.xls</td><td>精加工</td><td>510</td><td>510</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202204.xls</td><td>绕嵌排</td><td>527</td><td>527</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202204.xls</td><td>装配喷漆</td><td>835</td><td>835</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202205.xls</td><td>精加工</td><td>378</td><td>378</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202205.xls</td><td>绕嵌排</td><td>523</td><td>523</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202205.xls</td><td>装配喷漆</td><td>776</td><td>776</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202206.xls</td><td>精加工</td><td>428</td><td>428</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202206.xls</td><td>绕嵌排</td><td>575</td><td>575</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202206.xls</td><td>装配喷漆</td><td>708</td><td>708</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202207.xls</td><td>精加工</td><td>523</td><td>523</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202207.xls</td><td>绕嵌排</td><td>661</td><td>661</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202207.xls</td><td>装配喷漆</td><td>821</td><td>821</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202208.xls</td><td>精加工</td><td>466</td><td>466</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202208.xls</td><td>绕嵌排</td><td>498</td><td>498</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202208.xls</td><td>装配喷漆</td><td>712</td><td>712</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202209.xls</td><td>精加工</td><td>367</td><td>367</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202209.xls</td><td>绕嵌排</td><td>406</td><td>406</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202209.xls</td><td>装配喷漆</td><td>674</td><td>674</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202210.xls</td><td>精加工</td><td>586</td><td>586</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202210.xls</td><td>绕嵌排</td><td>478</td><td>478</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202210.xls</td><td>装配喷漆</td><td>824</td><td>824</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202211.xls</td><td>精加工</td><td>554</td><td>554</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202211.xls</td><td>绕嵌排</td><td>483</td><td>483</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202211.xls</td><td>装配喷漆</td><td>664</td><td>664</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202212.xls</td><td>精加工</td><td>343</td><td>343</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202212.xls</td><td>绕嵌排</td><td>396</td><td>396</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202212.xls</td><td>装配喷漆</td><td>550</td><td>550</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202301.xls</td><td>精加工</td><td>297</td><td>297</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202301.xls</td><td>绕嵌排</td><td>323</td><td>323</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202301.xls</td><td>装配喷漆</td><td>443</td><td>443</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202302.xls</td><td>精加工</td><td>430</td><td>430</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202302.xls</td><td>绕嵌排</td><td>518</td><td>518</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202302.xls</td><td>装配喷漆</td><td>695</td><td>695</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202303.xls</td><td>精加工</td><td>498</td><td>498</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202303.xls</td><td>绕嵌排</td><td>575</td><td>575</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202303.xls</td><td>装配喷漆</td><td>866</td><td>866</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202304.xls</td><td>精加工</td><td>491</td><td>491</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202304.xls</td><td>绕嵌排</td><td>570</td><td>570</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202304.xls</td><td>装配喷漆</td><td>873</td><td>867</td><td>8</td><td>2</td><td>2</td><td>6</td><td>0</td><td class='WARN'>WARN</td></tr>
+<tr><td>202305.xls</td><td>精加工</td><td>490</td><td>490</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202305.xls</td><td>绕嵌排</td><td>560</td><td>560</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202305.xls</td><td>装配喷漆</td><td>877</td><td>877</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202306.xls</td><td>精加工</td><td>459</td><td>459</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202306.xls</td><td>绕嵌排</td><td>566</td><td>566</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202306.xls</td><td>装配喷漆</td><td>754</td><td>754</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202307.xls</td><td>精加工</td><td>479</td><td>479</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202307.xls</td><td>绕嵌排</td><td>578</td><td>578</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202307.xls</td><td>装配喷漆</td><td>715</td><td>715</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202308.xls</td><td>精加工</td><td>476</td><td>476</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202308.xls</td><td>绕嵌排</td><td>545</td><td>545</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202308.xls</td><td>装配喷漆</td><td>805</td><td>805</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202309.xls</td><td>精加工</td><td>440</td><td>440</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202309.xls</td><td>绕嵌排</td><td>516</td><td>516</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202309.xls</td><td>装配喷漆</td><td>596</td><td>596</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202310.xls</td><td>精加工</td><td>549</td><td>549</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202310.xls</td><td>绕嵌排</td><td>480</td><td>480</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202310.xls</td><td>装配喷漆</td><td>810</td><td>810</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202311.xls</td><td>精加工</td><td>476</td><td>476</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202311.xls</td><td>绕嵌排</td><td>505</td><td>505</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202311.xls</td><td>装配喷漆</td><td>696</td><td>696</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202312.xls</td><td>精加工</td><td>549</td><td>549</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202312.xls</td><td>绕嵌排</td><td>540</td><td>540</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202312.xls</td><td>装配喷漆</td><td>769</td><td>769</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202401.xls</td><td>精加工</td><td>493</td><td>493</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202401.xls</td><td>绕嵌排</td><td>539</td><td>539</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202401.xls</td><td>装配喷漆</td><td>762</td><td>762</td><td>2</td><td>2</td><td>2</td><td>0</td><td>0</td><td class='TOL'>TOL</td></tr>
+<tr><td>202402.xls</td><td>精加工</td><td>376</td><td>376</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202402.xls</td><td>绕嵌排</td><td>374</td><td>374</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202402.xls</td><td>装配喷漆</td><td>442</td><td>442</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202403.xls</td><td>精加工</td><td>528</td><td>528</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202403.xls</td><td>绕嵌排</td><td>541</td><td>541</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202403.xls</td><td>装配喷漆</td><td>898</td><td>898</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202404.xls</td><td>精加工</td><td>552</td><td>552</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202404.xls</td><td>绕嵌排</td><td>634</td><td>634</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202404.xls</td><td>装配喷漆</td><td>866</td><td>866</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202405.xls</td><td>精加工</td><td>576</td><td>576</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202405.xls</td><td>绕嵌排</td><td>661</td><td>661</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202405.xls</td><td>装配喷漆</td><td>851</td><td>851</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202406.xls</td><td>精加工</td><td>528</td><td>528</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202406.xls</td><td>绕嵌排</td><td>746</td><td>746</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202406.xls</td><td>装配喷漆</td><td>794</td><td>794</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202407.xls</td><td>精加工</td><td>542</td><td>542</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202407.xls</td><td>绕嵌排</td><td>591</td><td>591</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202407.xls</td><td>装配喷漆</td><td>830</td><td>830</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202408.xls</td><td>精加工</td><td>490</td><td>490</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202408.xls</td><td>绕嵌排</td><td>560</td><td>560</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202408.xls</td><td>装配喷漆</td><td>635</td><td>635</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202409.xls</td><td>精加工</td><td>571</td><td>571</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202409.xls</td><td>绕嵌排</td><td>573</td><td>573</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202409.xls</td><td>装配喷漆</td><td>694</td><td>694</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202410.xls</td><td>精加工</td><td>606</td><td>606</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202410.xls</td><td>绕嵌排</td><td>507</td><td>507</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202410.xls</td><td>装配喷漆</td><td>728</td><td>728</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202411.xls</td><td>精加工</td><td>549</td><td>549</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202411.xls</td><td>绕嵌排</td><td>523</td><td>523</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202411.xls</td><td>装配喷漆</td><td>752</td><td>752</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202412.xls</td><td>精加工</td><td>741</td><td>741</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202412.xls</td><td>绕嵌排</td><td>656</td><td>656</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202412.xls</td><td>装配喷漆</td><td>818</td><td>818</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202501.xls</td><td>精加工</td><td>515</td><td>515</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202501.xls</td><td>绕嵌排</td><td>464</td><td>464</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202501.xls</td><td>装配喷漆</td><td>691</td><td>691</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202502.xls</td><td>精加工</td><td>361</td><td>361</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202502.xls</td><td>绕嵌排</td><td>484</td><td>484</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202502.xls</td><td>装配喷漆</td><td>635</td><td>635</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202503.xls</td><td>精加工</td><td>475</td><td>475</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202503.xls</td><td>绕嵌排</td><td>460</td><td>460</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202503.xls</td><td>装配喷漆</td><td>743</td><td>743</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202504.xls</td><td>精加工</td><td>336</td><td>336</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202504.xls</td><td>绕嵌排</td><td>328</td><td>328</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202504.xls</td><td>装配喷漆</td><td>449</td><td>449</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202505.xls</td><td>精加工</td><td>355</td><td>355</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202505.xls</td><td>绕嵌排</td><td>389</td><td>389</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202505.xls</td><td>装配喷漆</td><td>542</td><td>542</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202506.xls</td><td>精加工</td><td>357</td><td>357</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202506.xls</td><td>绕嵌排</td><td>573</td><td>573</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202506.xls</td><td>装配喷漆</td><td>624</td><td>624</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202507.xls</td><td>精加工</td><td>472</td><td>472</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202507.xls</td><td>绕嵌排</td><td>431</td><td>431</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+<tr><td>202507.xls</td><td>装配喷漆</td><td>576</td><td>576</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class='OK'>OK</td></tr>
+</table>
+<h2>Tolerance 匹配明细 (|diff| &lt; 0.01 的行对)</h2>
+<p>共 <b>320</b> 行 hash 不等但 tolerance 匹配。下表展示每个 TOL/WARN 文件的前 5 个 (Excel 端, DB 端) 对，仅显示差异数值列。</p>
+<table><tr><th>文件 :: Sheet</th><th>Excel 端字段值</th><th>DB 端字段值</th><th>最大 |diff|</th></tr>
+<tr><td>201406.xls :: 绕嵌排</td><td>职员全名='赵世群', 型号='QL90L-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='赵世群', 工序='None', 型号='QL90L-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201406.xls :: 装配喷漆</td><td>职员全名='装配', 型号='90'<br><b>差异: 金额=25.514999999999997↔25.52</b></td><td>职员全名='装配', 工序='None', 型号='90'<br>&nbsp;</td><td>0.005000000000003</td></tr>
+<tr><td>201407_1.xls :: 精加工</td><td>职员全名='袁崇雷', 型号='YEJ2-63转子'<br><b>差异: 金额=51.254999999999995↔51.26</b></td><td>职员全名='袁崇雷', 工序='None', 客户名称='None', 型号='YEJ2-63转子'<br>&nbsp;</td><td>0.005000000000005</td></tr>
+<tr><td>201408.xls :: 精加工</td><td>职员全名='袁崇雷', 型号='90吊篮'<br><b>差异: 金额=40.184999999999995↔40.19</b></td><td>职员全名='袁崇雷', 工序='None', 客户名称='None', 型号='90吊篮'<br>&nbsp;</td><td>0.005000000000005</td></tr>
+<tr><td>201408.xls :: 精加工</td><td>职员全名='贾登峰', 型号='132B5'<br><b>差异: 金额=30.884999999999998↔30.89</b></td><td>职员全名='贾登峰', 工序='None', 客户名称='None', 型号='132B5'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201408.xls :: 装配喷漆</td><td>职员全名='装配', 型号='801-6'<br><b>差异: 金额=22.544999999999998↔22.55</b></td><td>职员全名='装配', 工序='None', 客户名称='None', 型号='801-6'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201410.xls :: 装配喷漆</td><td>职员全名='装配', 型号='CS225'<br><b>差异: 金额=22.544999999999998↔22.55</b></td><td>职员全名='装配', 工序='None', 客户名称='None', 型号='CS225'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201410.xls :: 装配喷漆</td><td>职员全名='装配', 型号='KKS250'<br><b>差异: 金额=25.514999999999997↔25.52</b></td><td>职员全名='装配', 工序='None', 客户名称='None', 型号='KKS250'<br>&nbsp;</td><td>0.005000000000003</td></tr>
+<tr><td>201501.xls :: 绕嵌排</td><td>职员全名='赵世群', 型号='1002-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='赵世群', 工序='None', 客户名称='None', 型号='1002-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201503.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='90L-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='90L-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201504.xls :: 精加工</td><td>职员全名='崔礼军', 型号='112M-4'<br><b>差异: 金额=25.874999999999996↔25.88</b></td><td>职员全名='崔礼军', 工序='None', 客户名称='None', 型号='112M-4'<br>&nbsp;</td><td>0.005000000000004</td></tr>
+<tr><td>201504.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='100L-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='100L-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201504.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='1002-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='1002-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201504.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='1001-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='1001-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201504.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='IE2 90S-4'<br><b>差异: 金额=9.584999999999999↔9.59</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='IE2 90S-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201504.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='1002-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='1002-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201505.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='1001-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='1001-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201506.xls :: 精加工</td><td>职员全名='崔礼军', 型号='112M-4'<br><b>差异: 金额=25.874999999999996↔25.88</b></td><td>职员全名='崔礼军', 工序='None', 客户名称='None', 型号='112M-4'<br>&nbsp;</td><td>0.005000000000004</td></tr>
+<tr><td>201506.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='100L-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='100L-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201506.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='1002-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='1002-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201506.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='100L-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='100L-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201506.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='1002-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='1002-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201506.xls :: 装配喷漆</td><td>职员全名='装配', 型号='90L-4'<br><b>差异: 金额=25.514999999999997↔25.52</b></td><td>职员全名='装配', 工序='None', 客户名称='None', 型号='90L-4'<br>&nbsp;</td><td>0.005000000000003</td></tr>
+<tr><td>201508.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='1002-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='1002-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201508.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='Q1002-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='Q1002-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201508.xls :: 装配喷漆</td><td>职员全名='装配', 型号='802-8'<br><b>差异: 金额=42.254999999999995↔42.26</b></td><td>职员全名='装配', 工序='None', 客户名称='None', 型号='802-8'<br>&nbsp;</td><td>0.005000000000005</td></tr>
+<tr><td>201510.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='90S-6出口'<br><b>差异: 金额=27.224999999999998↔27.23</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='90S-6出口'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201510.xls :: 绕嵌排</td><td>职员全名='张丽', 型号='单90S-4'<br><b>差异: 金额=18.224999999999998↔18.23</b></td><td>职员全名='张丽', 工序='None', 客户名称='None', 型号='单90S-4'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201510.xls :: 绕嵌排</td><td>职员全名='朱从文', 型号='90S-6'<br><b>差异: 金额=29.474999999999998↔29.48</b></td><td>职员全名='朱从文', 工序='None', 客户名称='None', 型号='90S-6'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201510.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='90S-6出口'<br><b>差异: 金额=27.224999999999998↔27.23</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='90S-6出口'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201511.xls :: 绕嵌排</td><td>职员全名='范红英', 型号='IE2-90S-6出口'<br><b>差异: 金额=27.224999999999998↔27.23</b></td><td>职员全名='范红英', 工序='None', 客户名称='None', 型号='IE2-90S-6出口'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201511.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='713-2'<br><b>差异: 金额=11.834999999999999↔11.84</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='713-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201511.xls :: 绕嵌排</td><td>职员全名='季艳', 型号='Q100L-2'<br><b>差异: 金额=20.294999999999998↔20.3</b></td><td>职员全名='季艳', 工序='None', 客户名称='None', 型号='Q100L-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201511.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='713-2'<br><b>差异: 金额=11.834999999999999↔11.84</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='713-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201511.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='1002-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='1002-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201512.xls :: 精加工</td><td>职员全名='许二成', 型号='80车轴+打中心孔'<br><b>差异: 金额=36.224999999999994↔36.23</b></td><td>职员全名='许二成', 工序='None', 客户名称='None', 型号='80车轴+打中心孔'<br>&nbsp;</td><td>0.005000000000006</td></tr>
+<tr><td>201512.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='100L-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='100L-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201512.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='100L2-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='100L2-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201512.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='Q100L-2'<br><b>差异: 金额=20.294999999999998↔20.3</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='Q100L-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201512.xls :: 绕嵌排</td><td>职员全名='季艳', 型号='Q100L-2'<br><b>差异: 金额=20.294999999999998↔20.3</b></td><td>职员全名='季艳', 工序='None', 客户名称='None', 型号='Q100L-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201512.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='100L2-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='100L2-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201601.xls :: 绕嵌排</td><td>职员全名='范红英', 型号='100L2-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='范红英', 工序='None', 客户名称='None', 型号='100L2-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201601.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='P100L2-2'<br><b>差异: 金额=29.474999999999998↔29.48</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='P100L2-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201601.xls :: 绕嵌排</td><td>职员全名='张红', 型号='S28-2/4'<br><b>差异: 金额=27.944999999999997↔27.95</b></td><td>职员全名='张红', 工序='None', 客户名称='None', 型号='S28-2/4'<br>&nbsp;</td><td>0.005000000000003</td></tr>
+<tr><td>201601.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='100L2-4'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='100L2-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201602.xls :: 装配喷漆</td><td>职员全名='装配', 型号='71'<br><b>差异: 金额=31.604999999999997↔31.61</b></td><td>职员全名='装配', 工序='None', 客户名称='None', 型号='71'<br>&nbsp;</td><td>0.005000000000003</td></tr>
+<tr><td>201603.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='QL132S-4'<br><b>差异: 金额=24.794999999999998↔24.8</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='QL132S-4'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201603.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='Q100L-2'<br><b>差异: 金额=20.294999999999998↔20.3</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='Q100L-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201603.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='Q100L-2'<br><b>差异: 金额=20.294999999999998↔20.3</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='Q100L-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201603.xls :: 绕嵌排</td><td>职员全名='范红英', 型号='Q100L-2'<br><b>差异: 金额=20.294999999999998↔20.3</b></td><td>职员全名='范红英', 工序='None', 客户名称='None', 型号='Q100L-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201604.xls :: 绕嵌排</td><td>职员全名='王风云', 型号='YL90S-4'<br><b>差异: 金额=18.224999999999998↔18.23</b></td><td>职员全名='王风云', 工序='None', 客户名称='None', 型号='YL90S-4'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201604.xls :: 绕嵌排</td><td>职员全名='张丽', 型号='YL90S-4'<br><b>差异: 金额=18.224999999999998↔18.23</b></td><td>职员全名='张丽', 工序='None', 客户名称='None', 型号='YL90S-4'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201604.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='802-4'<br><b>差异: 金额=11.924999999999999↔11.93</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='802-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201604.xls :: 绕嵌排</td><td>职员全名='王晓玲', 型号='YLCS225'<br><b>差异: 金额=18.224999999999998↔18.23</b></td><td>职员全名='王晓玲', 工序='None', 客户名称='None', 型号='YLCS225'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201604.xls :: 绕嵌排</td><td>职员全名='王晓玲', 型号='YL90S-4'<br><b>差异: 金额=18.224999999999998↔18.23</b></td><td>职员全名='王晓玲', 工序='None', 客户名称='None', 型号='YL90S-4'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201605.xls :: 绕嵌排</td><td>职员全名='卢婷婷', 型号='711-2'<br><b>差异: 金额=11.834999999999999↔11.84</b></td><td>职员全名='卢婷婷', 工序='None', 客户名称='None', 型号='711-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201605.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='QL132S2-2'<br><b>差异: 金额=24.794999999999998↔24.8</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='QL132S2-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201605.xls :: 绕嵌排</td><td>职员全名='范红英', 型号='100L-2'<br><b>差异: 金额=14.084999999999999↔14.09</b></td><td>职员全名='范红英', 工序='None', 客户名称='None', 型号='100L-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201605.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='QL132M-4'<br><b>差异: 金额=24.794999999999998↔24.8</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='QL132M-4'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201605.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='711-2'<br><b>差异: 金额=11.834999999999999↔11.84</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='711-2'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201606.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='P100L2-2'<br><b>差异: 金额=29.474999999999998↔29.48</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='P100L2-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201606.xls :: 绕嵌排</td><td>职员全名='窦春花', 型号='QL32S1-2'<br><b>差异: 金额=24.794999999999998↔24.8</b></td><td>职员全名='窦春花', 工序='None', 客户名称='None', 型号='QL32S1-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201606.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='QL132S1-2'<br><b>差异: 金额=24.794999999999998↔24.8</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='QL132S1-2'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201606.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='802-4'<br><b>差异: 金额=11.924999999999999↔11.93</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='802-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201606.xls :: 绕嵌排</td><td>职员全名='卢婷婷', 型号='801-4'<br><b>差异: 金额=11.924999999999999↔11.93</b></td><td>职员全名='卢婷婷', 工序='None', 客户名称='None', 型号='801-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201607.xls :: 精加工</td><td>职员全名='袁崇雷', 工序='磨+铣', 型号='160'<br><b>差异: 金额=96.37499999999999↔96.38</b></td><td>职员全名='袁崇雷', 工序='磨+铣', 客户名称='None', 型号='160'<br>&nbsp;</td><td>0.00500000000001</td></tr>
+<tr><td>201607.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='802-4'<br><b>差异: 金额=11.924999999999999↔11.93</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='802-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201607.xls :: 绕嵌排</td><td>职员全名='张丽', 型号='YL90S-4'<br><b>差异: 金额=18.224999999999998↔18.23</b></td><td>职员全名='张丽', 工序='None', 客户名称='None', 型号='YL90S-4'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201607.xls :: 绕嵌排</td><td>职员全名='何春花', 型号='801-4'<br><b>差异: 金额=11.924999999999999↔11.93</b></td><td>职员全名='何春花', 工序='None', 客户名称='None', 型号='801-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201607.xls :: 绕嵌排</td><td>职员全名='谷敏', 型号='802-4'<br><b>差异: 金额=11.924999999999999↔11.93</b></td><td>职员全名='谷敏', 工序='None', 客户名称='None', 型号='802-4'<br>&nbsp;</td><td>0.005000000000001</td></tr>
+<tr><td>201607.xls :: 绕嵌排</td><td>职员全名='王晓玲', 型号='YL90S-4'<br><b>差异: 金额=18.224999999999998↔18.23</b></td><td>职员全名='王晓玲', 工序='None', 客户名称='None', 型号='YL90S-4'<br>&nbsp;</td><td>0.005000000000002</td></tr>
+<tr><td>201607.xls :: 装配喷漆</td><td>职员全名='装配', 型号='160'<br><b>差异: 金额=96.79499999999999↔96.8</b></td><td>职员全名='装配', 工序='None', 客户名称='None', 型号='160'<br>&nbsp;</td><td>0.00500000000001</td></tr>
+<tr><td>201608.xls :: 精加工</td><td>职员全名='谷鹏文', 工序='磨', 型号='100'<br><b>差异: 金额=312.04499999999996↔312.05</b></td><td>职员全名='谷鹏文', 工序='磨', 客户名称='None', 型号='100'<br>&nbsp;</td><td>0.00500000000004</td></tr>
+<tr><td colspan=4>... 还有 77 个文件有 tolerance 匹配 ...</td></tr>
+</table>
+<h2>WARN 详情 (tolerance 未解决的差异)</h2>
+<h3>201501.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '0'}
+
+</pre>
+<h3>201502.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '刘天文', '型号': '请假', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '0'}
+
+</pre>
+<h3>201512.xls :: 精加工</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '张宝', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '0'}
+
+</pre>
+<h3>201603.xls :: 精加工</h3>
+<p>剩余漏行: 4, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李成杰', '型号': '李成杰合计', '工序': ' ', '计件数量': '5656', '系数': '', '定额': '金额', '金额': '3213.99'}
+
+  {'职员全名': '许二成', '型号': '许二成合计', '工序': '', '计件数量': '1637', '系数': '', '定额': '金额', '金额': '1044.065'}
+
+  {'职员全名': '李成杰', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '许二成', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201603.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201604.xls :: 精加工</h3>
+<p>剩余漏行: 10, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '谷鹏文', '型号': '', '工序': '谷鹏文合计', '计件数量': '4416', '系数': '', '定额': '金额', '金额': '2825.83', '备注': ''}
+
+  {'职员全名': '高中仁', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '许二成', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '周绍莹', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '袁崇雷', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李海建', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '贾登峰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '周绍莹', '型号': '', '工序': '周绍莹合计', '计件数量': '3321', '系数': '', '定额': '金额', '金额': '2652.985', '备注': ''}
+
+  {'职员全名': '谷鹏文', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '贾登峰', '工序全名': '', '工序': '贾登峰合计', '计件数量': '9100', '系数': '', '定额': '金额', '金额': '4728.06', '备注': ''}
+
+</pre>
+<h3>201604.xls :: 绕嵌排</h3>
+<p>剩余漏行: 21, 剩余多行: 0, tolerance 已解决: 16</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '何春花', '型号': '何春花合计', '工序全名': '', '计件数量': '1000', '系数': '', '定额': '金额', '金额': '2262.585', '备注': ''}
+
+  {'职员全名': '范红英', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '排线：68', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '嵌线：443', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '窦春花合计', '工序全名': '', '计件数量': '628', '系数': '', '定额': '合计', '金额': '3390.205', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '嵌线：444', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '绕线：759', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '安国双合计', '工序全名': '', '计件数量': '499', '系数': '', '定额': '金额', '金额': '3717.1349999999998', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '王凤云合计', '工序全名': '', '计件数量': '525', '系数': '', '定额': '金额', '金额': '3325.825', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '排线：241', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '嵌线：494', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '范红英', '型号': '范红英', '工序全名': '合计', '计件数量': '452', '系数': '', '定额': '金额', '金额': '2122.285', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '绕 线：415', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '谷敏合计', '工序全名': '', '计件数量': '605', '系数': '', '定额': '金额', '金额': '3354.665', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201604.xls :: 装配喷漆</h3>
+<p>剩余漏行: 3, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '装配', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '刘天文', '型号': '', '工序全名': '刘天文合计', '计件数量': '8233', '系数': '1', '定额': '金额', '金额': '2720.355'}
+
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201605.xls :: 精加工</h3>
+<p>剩余漏行: 10, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李成杰', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '崔礼军', '型号': '车转子：982', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁崇雷', '型号': '压：1079', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷鹏文', '型号': '磨：3124', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '周绍莹', '型号': '车转子：969', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁崇雷', '型号': '磨：154', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷鹏文', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔礼军', '型号': ' 下料 ：150', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁崇雷', '型号': '铣：352', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李成杰', '型号': '铣 ：2899', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201605.xls :: 绕嵌排</h3>
+<p>剩余漏行: 24, 剩余多行: 0, tolerance 已解决: 7</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '张红', '型号': '绕线：1233', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '排线：639', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '嵌线：523', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '嵌线:493', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '排线:198', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '卢婷婷', '型号': '排线：559', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '嵌线：461', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '嵌线：414', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '姜亭亭', '型号': '嵌线：48', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '卢婷婷', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '排线:637', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '绕线：131', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '嵌线:540', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '姜亭亭', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '绕线:999', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201605.xls :: 装配喷漆</h3>
+<p>剩余漏行: 8, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '邵平元', '型号': '喷漆：203', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '刘天文', '型号': '喷转子：471', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '装配', '型号': '前装：3143', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '邵平元', '型号': '电机:3180', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '装配', '型号': '中装：3132', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '刘天文', '型号': '浸漆：3472', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '装配', '型号': '后装：2556', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201606.xls :: 精加工</h3>
+<p>剩余漏行: 6, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '崔礼军', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '李海建', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁崇雷', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷鹏文', '型号': '磨：2363', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '贾登峰', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷鹏文', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201606.xls :: 绕嵌排</h3>
+<p>剩余漏行: 16, 剩余多行: 0, tolerance 已解决: 9</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '谷敏', '型号': '排线:551', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李玉林', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '排线：568', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': ' 排线：  180', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '范红英', '型号': '排线:372', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '嵌线:426', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '绕线:       856', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '卢婷婷', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '绕线：1183', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '姜亭亭', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '卢婷婷', '型号': '排线:497', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201606.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '装配', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201607.xls :: 精加工</h3>
+<p>剩余漏行: 8, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李成杰', '型号': '铣：4573', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '崔礼军', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '高中仁', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李海建', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁崇雷', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '贾登峰', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷鹏文', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张宝', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201607.xls :: 绕嵌排</h3>
+<p>剩余漏行: 20, 剩余多行: 0, tolerance 已解决: 17</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '张红', '型号': '张红合计', '工序全名': '', '计件数量': '', '系数': '', '定额': '金额', '金额': '1378.29', '备注': ''}
+
+  {'职员全名': '范红英', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '排线：122', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李玉林', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '排线：509', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '卢婷婷', '型号': '排线：418', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '嵌线：353', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李玉林', '型号': '嵌线：310', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '嵌线：247', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '绕线：1069', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '排线：268', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '崔绍明合计', '工序全名': '', '计件数量': '', '系数': '', '定额': '金额', '金额': '3110.195', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '嵌线：407', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201607.xls :: 装配喷漆</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '装配', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201608.xls :: 精加工</h3>
+<p>剩余漏行: 15, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '高中仁', '型号': '车转子:40', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔礼军', '型号': '下料：45', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '谷鹏文', '型号': '铣 :260', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔礼军', '型号': '车转子:326', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁崇雷', '型号': '磨：579', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '周绍莹', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁崇雷', '型号': '铣：568', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李良峰', '型号': '校平衡：3755', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李海建', '型号': '车转子：988', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '高中仁', '型号': '铣：3', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '袁崇雷', '型号': '压：3894', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '高中仁', '型号': '下料：4', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李成杰', '型号': '铣：4356', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '张宝', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '谷鹏文', '型号': '磨:4339', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201608.xls :: 绕嵌排</h3>
+<p>剩余漏行: 14, 剩余多行: 0, tolerance 已解决: 4</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王晓玲', '型号': '嵌线：326', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '嵌线：478', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '排线:568', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '谷敏合计', '工序全名': '排线', '计件数量': '', '系数': '', '定额': '金额', '金额': '2183.48', '备注': ''}
+
+  {'职员全名': '李玉林', '型号': '嵌线：337', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '嵌线:326', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '卢婷婷', '型号': '排线：509', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201608.xls :: 装配喷漆</h3>
+<p>剩余漏行: 6, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '装配', '型号': '中装：2923', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '邵平元', '型号': '电机：3231', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '装配', '型号': '后装：3245', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '邵平元', '型号': '转子：19', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '装配', '型号': '前装：2937', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201609.xls :: 精加工</h3>
+<p>剩余漏行: 11, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '谷鹏文', '型号': '铣：61', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李海建', '型号': '车转子：77', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '崔礼军', '型号': '车转子：399', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '李成杰', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '谷鹏文', '型号': '磨：1416', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔礼军', '型号': '下料：133', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '周绍莹', '型号': '下料：6', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '袁崇雷', '型号': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '周绍莹', '型号': '车转子：286', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张宝', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '李海建', '型号': '下料：12', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201609.xls :: 绕嵌排</h3>
+<p>剩余漏行: 13, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '卢婷婷', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '嵌线:348', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '嵌线：535', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '嵌线：444', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '排线:191', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '绕线：1271', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '嵌线：494', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '嵌线：459', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '绕线:1152', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '排线：564', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李玉林', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '排线:606', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201609.xls :: 装配喷漆</h3>
+<p>剩余漏行: 7, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '刘天文', '型号': '浸漆:2885', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '刘天文', '型号': '喷转子：272', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '装配', '型号': '中装：2963', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '邵平元', '型号': '转子：10', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '装配', '型号': '前装：2927', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '邵平元', '型号': '电机：2940', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '装配', '型号': '后装：3004', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201610.xls :: 精加工</h3>
+<p>剩余漏行: 9, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李成杰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔礼军', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '高中仁', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '周绍莹', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '袁崇雷', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李海建', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '贾登峰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李良峰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷鹏文', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201610.xls :: 绕嵌排</h3>
+<p>剩余漏行: 13, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '卢婷婷', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '袁玉祝', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '排线：549', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李玉林', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201610.xls :: 装配喷漆</h3>
+<p>剩余漏行: 3, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '邵平元', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '装配', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+</pre>
+<h3>201611.xls :: 精加工</h3>
+<p>剩余漏行: 9, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李成杰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '崔礼军', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '周绍莹', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁崇雷', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李海建', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李良峰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '贾登峰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷鹏文', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '张宝', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201611.xls :: 绕嵌排</h3>
+<p>剩余漏行: 13, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '卢婷婷', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': ''}
+
+  {'职员全名': '袁玉祝', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李玉林', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201611.xls :: 装配喷漆</h3>
+<p>剩余漏行: 3, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '邵平元', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '装配', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201701.xls :: 精加工</h3>
+<p>剩余漏行: 9, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李成杰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔礼军', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '高中仁', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李海建', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '袁崇雷', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '贾登峰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李良峰', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷鹏文', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张宝', '工序全名': '', '工序': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201701.xls :: 绕嵌排</h3>
+<p>剩余漏行: 13, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '卢婷婷', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '窦春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '崔绍明', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张丽', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王晓玲', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '张红', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '袁玉祝', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '何春花', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '谷敏', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '李玉林', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '安国双', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201701.xls :: 装配喷漆</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '邵平元', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '刘天文', '型号': '', '工序全名': '', '计件数量': '', '系数': '', '定额': '', '金额': '', '备注': ''}
+
+</pre>
+<h3>201708.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '邵平元', '型号': '邵平元', '工序全名': '喷电机合计', '计件数量': '3666', '系数': '', '定额': '金额', '金额': '2670.08', '备注': ''}
+
+</pre>
+<h3>201711.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '职员全名', '型号': '型号', '工序全名': '工序全名', '计件数量': '计件数量', '系数': '系数', '定额': '定额', '金额': '金额', '备注': '备注'}
+
+</pre>
+<h3>201804.xls :: 绕嵌排</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '1187', '系数': '', '定额': '金额', '金额': '2410.6', '备注': ''}
+
+</pre>
+<h3>201805.xls :: 绕嵌排</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 10</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '715', '系数': '', '定额': '金额', '金额': '1374.1150000000002', '备注': ''}
+
+</pre>
+<h3>201806.xls :: 绕嵌排</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 4</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '897', '系数': '', '定额': '金额', '金额': '1711.31', '备注': ''}
+
+</pre>
+<h3>201807.xls :: 绕嵌排</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 8</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '811', '系数': '', '定额': '金额', '金额': '1803.9799999999996', '备注': ''}
+
+</pre>
+<h3>201808.xls :: 绕嵌排</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 3</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '813', '系数': '', '定额': '金额', '金额': '1643.4', '备注': ''}
+
+</pre>
+<h3>201809.xls :: 绕嵌排</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '528', '系数': '', '定额': '金额', '金额': '1095.1599999999999', '备注': ''}
+
+</pre>
+<h3>201810.xls :: 绕嵌排</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 6</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王风云', '型号': '王风云', '工序全名': '嵌线合计', '计件数量': '205', '系数': '', '定额': '金额', '金额': '1153.3349999999998', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '582', '系数': '', '定额': '金额', '金额': '901.1099999999998', '备注': ''}
+
+</pre>
+<h3>201811.xls :: 绕嵌排</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '1216', '系数': '', '定额': '金额', '金额': '1601.8200000000002', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '王风云', '工序全名': '嵌线合计', '计件数量': '517', '系数': '', '定额': '金额', '金额': '2179.2599999999998', '备注': ''}
+
+</pre>
+<h3>201812.xls :: 绕嵌排</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 14</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '862', '系数': '', '定额': '金额', '金额': '2186.4599999999996', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '王风云', '工序全名': '嵌线合计', '计件数量': '401', '系数': '', '定额': '金额', '金额': '2973.0749999999994', '备注': ''}
+
+</pre>
+<h3>201901.xls :: 绕嵌排</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 3</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '914', '系数': '', '定额': '金额', '金额': '2200.1049999999996', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '王风云', '工序全名': '嵌线合计', '计件数量': '447', '系数': '', '定额': '金额', '金额': '3259.3599999999983', '备注': ''}
+
+</pre>
+<h3>201902.xls :: 绕嵌排</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 8</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '574', '系数': '', '定额': '金额', '金额': '1241.7099999999998', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '王风云', '工序全名': '嵌线合计', '计件数量': '197', '系数': '', '定额': '金额', '金额': '1448.7699999999998', '备注': ''}
+
+</pre>
+<h3>201903.xls :: 绕嵌排</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 5</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王风云', '型号': '王风云', '工序全名': '嵌线合计', '计件数量': '530', '系数': '', '定额': '金额', '金额': '3159.4099999999994', '备注': ''}
+
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '1106', '系数': '', '定额': '金额', '金额': '1784.1750000000002', '备注': ''}
+
+</pre>
+<h3>201904.xls :: 绕嵌排</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 5</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王萍', '型号': '王萍', '工序全名': '绕线合计', '计件数量': '826', '系数': '', '定额': '金额', '金额': '1797.71', '备注': ''}
+
+  {'职员全名': '王风云', '型号': '王风云', '工序全名': '嵌线合计', '计件数量': '294', '系数': '', '定额': '金额', '金额': '1709.0800000000002', '备注': ''}
+
+</pre>
+<h3>201905.xls :: 绕嵌排</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 4</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '王风云', '型号': '王风云', '工序全名': '嵌线合计', '计件数量': '400', '系数': '', '定额': '金额', '金额': '2891.64', '备注': ''}
+
+</pre>
+<h3>202011.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '汤雅林', '型号': '型号', '工序全名': '工序全名', '计件数量': '计件数量', '定额': '定额', '金额': '金额', '备注': '备注'}
+
+</pre>
+<h3>202104.xls :: 装配喷漆</h3>
+<p>剩余漏行: 2, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '曾大军', '型号': '', '工序全名': '后装合计', '计件数量': '1221', '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '曾大军', '型号': '', '工序全名': '总数量合计', '计件数量': '3333', '定额': '金额', '金额': '4249.843000000001', '备注': ''}
+
+</pre>
+<h3>202105.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '汤雅林', '型号': '型号', '工序全名': '工序全名', '计件数量': '计件数量', '定额': '定额', '金额': '金额 ', '备注': '备注'}
+
+</pre>
+<h3>202108.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '汤雅林', '型号': '型号', '工序全名': '工序全名', '计件数量': '计件数量', '定额': '定额', '金额': '金额', '备注': '备注'}
+
+</pre>
+<h3>202111.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李兆军', '型号': '型号', '工序全名': '工序全名', '计件数量': '计件数量', '定额': '定额', '金额': '金额', '备注': '备注'}
+
+</pre>
+<h3>202112.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李兆军', '型号': '型号', '工序全名': '工序全名', '计件数量': '计件数量', '定额': '定额', '金额': '金额', '备注': '备注'}
+
+</pre>
+<h3>202202.xls :: 装配喷漆</h3>
+<p>剩余漏行: 1, 剩余多行: 0, tolerance 已解决: 0</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '李兆军', '型号': '型号', '工序全名': '工序全名', '计件数量': '计件数量', '定额': '定额', '金额': '金额', '备注': '备注'}
+
+</pre>
+<h3>202203.xls :: 装配喷漆</h3>
+<p>剩余漏行: 3, 剩余多行: 0, tolerance 已解决: 1</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '陈会清', '型号': '型号', '工序全名': '工序全名', '计件数量': Decimal('0'), '定额': '定额', '金额': Decimal('0'), '备注': '备注'}
+
+  {'职员全名': '黄志梅', '型号': '型号', '工序全名': '工序全名', '计件数量': Decimal('0'), '定额': '定额', '金额': Decimal('0'), '备注': '备注'}
+
+  {'职员全名': '李兆军', '型号': '型号', '工序全名': '工序全名', '计件数量': '计件数量', '定额': '定额', '金额': '金额', '备注': '备注'}
+
+</pre>
+<h3>202304.xls :: 装配喷漆</h3>
+<p>剩余漏行: 6, 剩余多行: 0, tolerance 已解决: 2</p>
+<h4>漏行样本</h4><pre>
+  {'职员全名': '黄志梅', '型号': '', '工序全名': '前装合计', '计件数量': Decimal('832.50'), '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '陈会清', '型号': '', '工序全名': '后装合计', '计件数量': Decimal('1004.50'), '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '黄志梅', '型号': '', '工序全名': '后装合计', '计件数量': Decimal('1004.50'), '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '黄志梅', '型号': '', '工序全名': '绕线合计', '计件数量': Decimal('192.50'), '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '陈会清', '型号': '', '工序全名': '前装合计', '计件数量': Decimal('832.50'), '定额': '', '金额': '', '备注': ''}
+
+  {'职员全名': '陈会清', '型号': '', '工序全名': '绕线合计', '计件数量': Decimal('192.50'), '定额': '', '金额': '', '备注': ''}
+
+</pre>
+</body></html>
