@@ -1,7 +1,11 @@
 # 待修复 - Excel 公式错误（#VALUE! / #REF!）
 
 > 扫描方式：使用 LibreOffice 重新计算公式后检测
-> 扫描日期：2026-05-11
+> 扫描日期：2026-05-11（最近一次）
+> 注意：todo.md 中的错误源自源 Excel 文件（LibreOffice 重新计算后能看到），
+>     但 batch_process.py 用 xlrd 读 .xls 时会**吞掉 #VALUE! 变成 0/空**，
+>     所以 DB 中相应行的 `金额` 列被记为 0（audit finding "金额=0 但计件数量≠0"）。
+>     修复源文件是根治办法, 重新跑 `sqlite_payroll_details_refresh.sh` 后 DB 金额会变正确。
 
 ---
 
@@ -33,17 +37,6 @@
 | new_payroll/202105.xls | 16 |
 | new_payroll/202110.xls | 21 |
 
-### placeholder 目录（旧版备份）
-
-| 文件 | 工作表 | 错误行数 |
-|------|--------|----------|
-| old_payroll/placeholder/202006.xls | 喷漆装配 | 136 |
-| old_payroll/placeholder/202006.xls | 精加工 | 172 |
-| old_payroll/placeholder/202007.xls | 喷漆装配 | 66 |
-| old_payroll/placeholder/202009.xls | 装配喷漆 | 254 |
-| old_payroll/placeholder/202010.xls | 装配喷漆 | 283 |
-| old_payroll/placeholder/202011.xls | 装配喷漆 | 300 |
-
 ---
 
 ## 第 L 列（备注列）— #VALUE!
@@ -64,13 +57,11 @@
 
 ---
 
-## 其他
+## 其他（主目录）
 
 | 文件 | 说明 |
 |------|------|
 | old_payroll/201711.xls 装配喷漆 | 第R列（超范围），#VALUE!，2行 |
-| old_payroll/placeholder/202003.xls 喷漆装配 | 第E列（计件数量），#VALUE!，1行 |
-| old_payroll/placeholder/202010_2.xls | 第G列（装配喷漆），#VALUE!，17行 |
 
 ---
 
@@ -83,13 +74,14 @@
 
 ---
 
-## 已删除的旧文件
+## 待办：自动化扫描工具
 
-| 文件 | 说明 |
-|------|------|
-| deleted/202010.xls | 装配喷漆，第G列，#VALUE!，192行 |
+- **`one_time_pgms/take_excel_screenshot.py`**: 当前**未运行**. 脚本中 `FILES_WITH_ISSUES` 是 2026-05 手工 hardcoded 清单, 不会扫描新错误. 需要:
+  1. 跑一次 `python one_time_pgms/take_excel_screenshot.py` 生成当前错误位置的 HTML 报告到 `screenshot/` 目录
+  2. 用脚本里 `find_all_errors_in_column()` 函数 (基于 openpyxl `data_only=True`) 做一次**全文件全列扫描**, 找到所有 #VALUE!/#REF! 行 (不依赖 hardcoded 清单)
+  3. 把扫描结果写回 todo.md 顶部表格, 替换过期数据
 
 ---
 
-**总计影响：约 2,400+ 行数据**
+**总计影响：约 2,400+ 行数据**（其中 DB 端表现为"金额=0 但计件数量≠0" ~21,486 行, 含历史 #VALUE! 残留）
 **主要问题：** 金额列（第G列）公式 `=计件数量×定额` 因引用断掉导致 #VALUE!
