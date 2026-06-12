@@ -122,12 +122,13 @@ Excel 文件
 - **`payroll_details`**: 14 列，NUMERIC(10,2) 精度（金额、系数等）
 - **`load_log`**: 记录被丢弃的列名，用于数据质量监控
 
-### 特殊逻辑（18 条规则，详见 README.md）
+### 特殊逻辑（20 条规则，详见 README.md）
 关键规则摘要：
 - L1: 喷漆装配表"前装/中装/后装/刘雷/装配"→"职员全名"
 - L14-16: 前装/中装/后装人员的行展开
 - L17: 职员全名为空→删除行
 - L18: 特定中文短语（下料/铣底脚/校平衡等）→删除行
+- **L20** (2026-06): 当 `职员全名 == '装配'` 时, 1:1 拆分为 李兆军 + 陈宗强 (各得原 `计件数量/金额` 的一半, `ROUND_HALF_UP` 到 0.01). `定额/系数/型号/工序/客户名称/工序全名/备注/代码/日期` 100% 原值保留. 见 `L20_verification_report.html`.
 
 ## 重要注意事项
 
@@ -139,4 +140,36 @@ Excel 文件
 6. **日志文件**:
    - `log_batch.txt`: 主处理日志（被 .gitignore 排除）
    - `special_logic_applied.log`: 特殊逻辑应用记录
-7. **当前分支**: `process_date_col`，主线 `main`；近期工作集中在日期列数据质量
+7. **当前分支**: `main`（含 L19 工时保留 + L20 装配拆分）
+
+## 经验教训 (历史踩坑)
+
+### 数据库刷新 (2026-06 L20 经验)
+- **始终用 `./sqlite_payroll_details_refresh.sh` 端到端刷新**, 不要手工拼 `batch_process.py` + 部分清洗步骤. 漏一步就导致 DB 与生产 pipeline 不一致.
+- 刷新前先 `cp ../payroll_database.db ../payroll_database_backup_<日期>_v2.db` (建议带 `_v2` 后缀以区分多个备份版本), 留作 reconcile 对照基线.
+- 备份 DB **永远不要写入**, 用 `sqlite3.connect("file:<path>?mode=ro", uri=True)` + `PRAGMA query_only = ON` 打开.
+
+### Reconcile (Excel vs DB 对账) 
+- 工具: `python one_time_pgms/reconcile_excel_vs_db.py --output reconcile_report.html`. 零写入 (`PRAGMA query_only=ON`).
+- 输出包含: OK / TOL (tolerance 解决) / WARN (tolerance 未解决) / UNREADABLE 4 状态; 关键指标是"剩余真实漏行/多行".
+- **对比两次 reconcile 报告 (L20 前 commit `6101230` vs L20 后) 是判断 L20 是否引入新问题的金标准**:
+  - WARN 文件清单 100% 相同 → L20 没引入新 WARN
+  - 剩余真实多行 = 0 → L20 不引入假行
+  - 剩余真实漏行微增 (+14) → 拆分行 hash 漂移是预期行为
+- 跨文件重复 (`content_hash`) 增长是**预期**的: L20 拆 1 行 → 2 行, 2 行除 `职员全名` 外内容相同, `row_content_hash` 必然相同.
+
+### 金额守恒的精确公式 (L20 验证)
+- L20 拆分后, 对每个 装配喷漆 文件应满足: `李兆军 增量 (current - backup) ≈ 备份 装配 总额 / 2 ≈ 陈宗强 总额`
+- **累计偏差 +¥N 是 ROUND_HALF_UP 累积效果, 不是数据漂移**: 15,960 行单行 ROUND_HALF_UP 后求和, 数学上必然出现微小的正向偏差.
+- 验证时**绝不能直接比 `李兆军 current 总额 == 备份 装配 总额 / 2`**, 因为 DB 端 李兆军 行包含 L20 装配拆分 + L15 中装拆分 + 历史的纯李兆军数据; 必须用 `current - backup` 增量.
+
+### 不要轻易判定"数据漂移" (201711.xls 误诊教训)
+- 当时报告显示 "201711.xls 漂移 +$3,902.04", 实际是混淆了"李兆军全部金额"和"李兆军由 L20 引起的金额增量", 类似 Python 变量名打错 (`ljzj_delta` vs `lzj_inc`).
+- **根因**: `v1` 备份基线遗漏了 2018+ 文件, 但 L20 后 DB 含 2018+ 数据, 错误地归结为"漂移".
+- **修正方法**: 改用 `v2` 备份 (用户手工用 `sqlite_payroll_details_refresh.sh` 在 main 分支上跑出来的) 作基线, 全文件差额 = +0.22, 完全在 ROUND_HALF_UP 累积范围内.
+- **原则**: 报告"数据漂移"前必须**用 (file, sheet, 姓名) 三元组定位**, 找出漂移的所有行并解释原因; 不可只比对总额差.
+
+### 命名一致性陷阱
+- Python 长变量名 (如 `ljzj_delta` / `ljz_inc` / `lzj_inc` 极易混) — 抽 inner function / 强制短命名可避免 NameError.
+- SQL 列名拼写错误也会让 SQL 静默成功但返回 NULL (`COALESCE(ROUND(SUM(金额),2),0)` 是必要防御).
+- f-string 不能含反斜杠 (`SyntaxError: f-string expression part cannot include a backslash`) — 把动态 SQL 抽到变量再插入 f-string.
