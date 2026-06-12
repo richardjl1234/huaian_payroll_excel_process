@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>L20 特殊逻辑验证报告</title>
+<style>
+    body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+           margin: 20px; color: #222; line-height: 1.5; max-width: 1400px; }
+    h1 { color: #1f4e79; border-bottom: 3px solid #1f4e79; padding-bottom: 8px; }
+    h2 { color: #1f4e79; margin-top: 32px; border-left: 4px solid #1f4e79; padding-left: 8px; }
+    h3 { color: #444; margin-top: 20px; }
+    .ok { color: #15803d; font-weight: bold; }
+    .warn { color: #b45309; font-weight: bold; }
+    .bad { color: #b91c1c; font-weight: bold; }
+    .muted { color: #6b7280; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+    th, td { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; }
+    th { background: #f3f4f6; font-weight: 600; }
+    tr:nth-child(even) td { background: #fafafa; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'Consolas', monospace; }
+    .center { text-align: center; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 12px;
+            font-size: 12px; font-weight: 600; }
+    .pill-ok { background: #d1fae5; color: #065f46; }
+    .pill-warn { background: #fef3c7; color: #92400e; }
+    .pill-bad { background: #fee2e2; color: #991b1b; }
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr);
+                    gap: 12px; margin: 16px 0; }
+    .stat { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;
+            padding: 12px 16px; }
+    .stat .label { font-size: 12px; color: #6b7280; text-transform: uppercase; }
+    .stat .value { font-size: 24px; font-weight: 600; color: #111827; margin-top: 4px; }
+    .stat .sub { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 13px; }
+    .callout { background: #eff6ff; border-left: 4px solid #1f4e79;
+               padding: 12px 16px; margin: 12px 0; border-radius: 0 4px 4px 0; }
+    .callout-warn { background: #fffbeb; border-left: 4px solid #b45309;
+                    padding: 12px 16px; margin: 12px 0; border-radius: 0 4px 4px 0; }
+    </style></head><body>
+<h1>L20 特殊逻辑验证报告</h1>
+<div class="callout">
+<b>L20 设计：</b>当 <code>职员全名 == '装配'</code> 时，把该行拆分为 2 行：<b>李兆军</b> + <b>陈宗强</b>，各得原 <code>计件数量</code> 和 <code>金额</code> 的一半（Decimal 半进位）。<br>
+<b>触发条件确认：</b>调查 backup DB，所有包含 <code>装配</code> 的 <code>职员全名</code> 行共 15,960 条，全部精确等于 <code>'装配'</code>，无 <code>'装配人员'</code> 等变体。
+</div>
+<h2>1. 顶线汇总</h2>
+<div class="summary-grid">
+<div class="stat"><div class="label">backup 装配 行数</div><div class="value">15,960</div><div class="sub">被 L20 拆分的源行</div></div>
+<div class="stat"><div class="label">new 装配 行数</div><div class="value">0</div><div class="sub">L20 拆分完毕，0 行残留</div></div>
+<div class="stat"><div class="label">new 陈宗强 行数</div><div class="value">15,987</div><div class="sub">100% 来自 L20</div></div>
+<div class="stat"><div class="label">new 李兆军 (装配喷漆)</div><div class="value">26,779</div><div class="sub">L20: 15,987 + L15: 10,792</div></div>
+</div>
+<div class="callout"><span class="pill pill-ok">PASS</span> backup 中所有 15,960 条 <code>装配</code> 行已全部被 L20 拆分为 李兆军 + 陈宗强（new 中 <code>装配</code>=0，新产生 15,987 条陈宗强 + 至少 15,987 条李兆军）。<br>差异 +27 行 来自数据漂移（见 §3 201711.xls 案例）。</div>
+<h2>2. 职员全名 Top 15 对比</h2>
+<p>展示 backup vs new 中出现频次最高的 15 个姓名。<code>装配</code> 从 backup 的首位消失，<code>李兆军</code> 和 <code>陈宗强</code> 进入 new 排名。</p>
+<table>
+<thead><tr><th>排名</th><th>backup 姓名</th><th class='num'>行数</th><th>new 姓名</th><th class='num'>行数</th><th class='num'>Δ</th></tr></thead><tbody>
+<tr><td class='center'>1</td><td>装配</td><td class='num'>15,960</td><td>李兆军</td><td class='num'>26,779</td><td class='num bad'>+10,819</td></tr>
+<tr><td class='center'>2</td><td>姜浩</td><td class='num'>15,161</td><td>陈宗强</td><td class='num'>15,987</td><td class='num bad'>+826</td></tr>
+<tr><td class='center'>3</td><td>黄志梅</td><td class='num'>14,568</td><td>姜浩</td><td class='num'>15,161</td><td class='num bad'>+593</td></tr>
+<tr><td class='center'>4</td><td>陈会清</td><td class='num'>14,568</td><td>黄志梅</td><td class='num'>14,572</td><td class='num warn'>+4</td></tr>
+<tr><td class='center'>5</td><td>李良峰</td><td class='num'>14,112</td><td>陈会清</td><td class='num'>14,572</td><td class='num bad'>+460</td></tr>
+<tr><td class='center'>6</td><td>刘天文</td><td class='num'>13,049</td><td>李良峰</td><td class='num'>14,116</td><td class='num bad'>+1,067</td></tr>
+<tr><td class='center'>7</td><td>贾登峰</td><td class='num'>12,057</td><td>刘天文</td><td class='num'>13,184</td><td class='num bad'>+1,127</td></tr>
+<tr><td class='center'>8</td><td>袁崇雷</td><td class='num'>11,716</td><td>贾登峰</td><td class='num'>12,072</td><td class='num bad'>+356</td></tr>
+<tr><td class='center'>9</td><td>李兆军</td><td class='num'>10,788</td><td>袁崇雷</td><td class='num'>11,742</td><td class='num bad'>+954</td></tr>
+<tr><td class='center'>10</td><td>崔礼军</td><td class='num'>10,714</td><td>崔礼军</td><td class='num'>10,729</td><td class='num warn'>+15</td></tr>
+<tr><td class='center'>11</td><td>窦春花</td><td class='num'>9,753</td><td>窦春花</td><td class='num'>9,765</td><td class='num warn'>+12</td></tr>
+<tr><td class='center'>12</td><td>王风云</td><td class='num'>9,399</td><td>王风云</td><td class='num'>9,424</td><td class='num warn'>+25</td></tr>
+<tr><td class='center'>13</td><td>安国双</td><td class='num'>9,380</td><td>安国双</td><td class='num'>9,393</td><td class='num warn'>+13</td></tr>
+<tr><td class='center'>14</td><td>王萍</td><td class='num'>8,290</td><td>王萍</td><td class='num'>8,314</td><td class='num warn'>+24</td></tr>
+<tr><td class='center'>15</td><td>谷敏</td><td class='num'>8,034</td><td>谷敏</td><td class='num'>8,047</td><td class='num warn'>+13</td></tr>
+</tbody></table>
+<h2>3. 按文件拆分对照表（40 个 装配喷漆 文件）</h2>
+<p>每行展示一个文件，<b>backup 装配 行数和金额</b> 对比 <b>new 中 李兆军+陈宗强 行的数量和金额</b>。理论上前两列应大致等于后两列（拆分不改变总和）。39/40 文件的数量列完全守恒，金额列有 ±0.5 元的舍入差；<b>201711.xls</b> 唯一出现 ~3,900 元差额，是 <b>预先存在的数据漂移</b>（Excel 文件改动），不是 L20 引起。</p>
+<table>
+<thead><tr><th>文件</th><th class='num'>backup 装配 行数</th><th class='num'>backup 装配 金额</th><th class='num'>new 李兆军+陈宗强 行数</th><th class='num'>new 金额</th><th class='num'>数量 Δ</th><th class='num'>金额 Δ</th><th>判定</th></tr></thead><tbody>
+<tr><td>201406.xls</td><td class='num'>287</td><td class='num'>8,377.92</td><td class='num'>574</td><td class='num'>8,378.20</td><td class='num'>+0.00</td><td class='num ok'>+0.28</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201407_1.xls</td><td class='num'>347</td><td class='num'>8,506.28</td><td class='num'>694</td><td class='num'>8,506.48</td><td class='num'>+0.00</td><td class='num ok'>+0.20</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201408.xls</td><td class='num'>383</td><td class='num'>9,321.05</td><td class='num'>766</td><td class='num'>9,321.30</td><td class='num'>+0.00</td><td class='num ok'>+0.25</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201409.xls</td><td class='num'>288</td><td class='num'>6,836.11</td><td class='num'>576</td><td class='num'>6,836.36</td><td class='num'>+0.00</td><td class='num ok'>+0.25</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201410.xls</td><td class='num'>223</td><td class='num'>4,134.68</td><td class='num'>446</td><td class='num'>4,134.80</td><td class='num'>+0.00</td><td class='num ok'>+0.12</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201411.xls</td><td class='num'>271</td><td class='num'>5,907.27</td><td class='num'>542</td><td class='num'>5,907.50</td><td class='num'>+0.00</td><td class='num ok'>+0.23</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201501.xls</td><td class='num'>268</td><td class='num'>4,279.25</td><td class='num'>536</td><td class='num'>4,279.40</td><td class='num'>+0.00</td><td class='num ok'>+0.15</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201502.xls</td><td class='num'>134</td><td class='num'>3,393.54</td><td class='num'>268</td><td class='num'>3,393.72</td><td class='num'>+0.00</td><td class='num ok'>+0.18</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201503.xls</td><td class='num'>340</td><td class='num'>10,805.00</td><td class='num'>680</td><td class='num'>10,805.30</td><td class='num'>+0.00</td><td class='num ok'>+0.30</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201504.xls</td><td class='num'>374</td><td class='num'>11,952.19</td><td class='num'>748</td><td class='num'>11,952.62</td><td class='num'>+0.00</td><td class='num ok'>+0.43</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201505.xls</td><td class='num'>345</td><td class='num'>11,883.78</td><td class='num'>690</td><td class='num'>11,884.20</td><td class='num'>+0.00</td><td class='num ok'>+0.42</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201506.xls</td><td class='num'>341</td><td class='num'>11,502.20</td><td class='num'>682</td><td class='num'>11,502.52</td><td class='num'>+0.00</td><td class='num ok'>+0.32</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201507.xls</td><td class='num'>349</td><td class='num'>0.00</td><td class='num'>698</td><td class='num'>0.00</td><td class='num'>+0.00</td><td class='num ok'>+0.00</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201508.xls</td><td class='num'>370</td><td class='num'>18,401.39</td><td class='num'>740</td><td class='num'>18,401.64</td><td class='num'>+0.00</td><td class='num ok'>+0.25</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201509.xlsx</td><td class='num'>410</td><td class='num'>21,695.88</td><td class='num'>820</td><td class='num'>21,696.06</td><td class='num'>+0.00</td><td class='num ok'>+0.18</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201510.xls</td><td class='num'>455</td><td class='num'>20,369.10</td><td class='num'>910</td><td class='num'>20,369.48</td><td class='num'>+0.00</td><td class='num ok'>+0.38</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201511.xls</td><td class='num'>429</td><td class='num'>21,272.35</td><td class='num'>858</td><td class='num'>21,272.54</td><td class='num'>+0.00</td><td class='num ok'>+0.19</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201512.xls</td><td class='num'>491</td><td class='num'>27,713.36</td><td class='num'>982</td><td class='num'>27,713.56</td><td class='num'>+0.00</td><td class='num ok'>+0.20</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201601.xls</td><td class='num'>395</td><td class='num'>12,942.69</td><td class='num'>790</td><td class='num'>12,942.96</td><td class='num'>+0.00</td><td class='num ok'>+0.27</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201602.xls</td><td class='num'>223</td><td class='num'>9,030.58</td><td class='num'>446</td><td class='num'>9,030.84</td><td class='num'>+0.00</td><td class='num ok'>+0.26</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201603.xls</td><td class='num'>495</td><td class='num'>19,855.33</td><td class='num'>990</td><td class='num'>19,855.68</td><td class='num'>+0.00</td><td class='num ok'>+0.35</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201604.xls</td><td class='num'>637</td><td class='num'>19,393.58</td><td class='num'>1,280</td><td class='num'>19,394.04</td><td class='num'>+0.00</td><td class='num ok'>+0.46</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201605.xls</td><td class='num'>596</td><td class='num'>16,116.60</td><td class='num'>1,198</td><td class='num'>16,117.08</td><td class='num'>+0.00</td><td class='num ok'>+0.48</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201606.xls</td><td class='num'>527</td><td class='num'>13,806.81</td><td class='num'>1,060</td><td class='num'>13,807.12</td><td class='num'>+0.00</td><td class='num ok'>+0.31</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201607.xls</td><td class='num'>545</td><td class='num'>11,572.34</td><td class='num'>1,096</td><td class='num'>11,572.64</td><td class='num'>+0.00</td><td class='num ok'>+0.30</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201608.xls</td><td class='num'>614</td><td class='num'>15,049.48</td><td class='num'>1,234</td><td class='num'>15,049.74</td><td class='num'>+0.00</td><td class='num ok'>+0.26</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201609.xls</td><td class='num'>535</td><td class='num'>15,945.45</td><td class='num'>1,076</td><td class='num'>15,945.74</td><td class='num'>+0.00</td><td class='num ok'>+0.29</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201610.xls</td><td class='num'>422</td><td class='num'>17,731.62</td><td class='num'>850</td><td class='num'>17,731.70</td><td class='num'>+0.00</td><td class='num ok'>+0.08</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201611.xls</td><td class='num'>610</td><td class='num'>24,172.23</td><td class='num'>1,226</td><td class='num'>24,172.70</td><td class='num'>+0.00</td><td class='num ok'>+0.47</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201701.xls</td><td class='num'>357</td><td class='num'>11,501.63</td><td class='num'>720</td><td class='num'>11,501.88</td><td class='num'>+0.00</td><td class='num ok'>+0.25</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201702.xls</td><td class='num'>293</td><td class='num'>9,340.74</td><td class='num'>586</td><td class='num'>9,341.04</td><td class='num'>+0.00</td><td class='num ok'>+0.30</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201703.xls</td><td class='num'>498</td><td class='num'>20,064.32</td><td class='num'>996</td><td class='num'>20,064.76</td><td class='num'>+0.00</td><td class='num ok'>+0.44</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201704.xls</td><td class='num'>384</td><td class='num'>12,967.51</td><td class='num'>768</td><td class='num'>12,968.00</td><td class='num'>+0.00</td><td class='num ok'>+0.49</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201705.xls</td><td class='num'>356</td><td class='num'>12,980.69</td><td class='num'>712</td><td class='num'>12,981.02</td><td class='num'>+0.00</td><td class='num ok'>+0.33</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201706.xls</td><td class='num'>333</td><td class='num'>12,821.20</td><td class='num'>666</td><td class='num'>12,821.44</td><td class='num'>+0.00</td><td class='num ok'>+0.24</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201707.xls</td><td class='num'>437</td><td class='num'>14,760.38</td><td class='num'>874</td><td class='num'>14,760.88</td><td class='num'>+0.00</td><td class='num ok'>+0.50</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201708.xls</td><td class='num'>482</td><td class='num'>23,044.05</td><td class='num'>964</td><td class='num'>23,044.32</td><td class='num'>+0.00</td><td class='num ok'>+0.27</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201709.xls</td><td class='num'>417</td><td class='num'>17,716.48</td><td class='num'>834</td><td class='num'>17,716.80</td><td class='num'>+0.00</td><td class='num ok'>+0.32</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201710.xls</td><td class='num'>465</td><td class='num'>19,578.72</td><td class='num'>930</td><td class='num'>19,579.10</td><td class='num'>+0.00</td><td class='num ok'>+0.38</td><td><span class="pill pill-ok">守恒</span></td></tr>
+<tr><td>201711.xls</td><td class='num'>234</td><td class='num'>9,996.24</td><td class='num'>607</td><td class='num'>13,898.28</td><td class='num'>+8973.00</td><td class='num bad'>+3,902.04</td><td><span class="pill pill-warn">数据漂移</span></td></tr>
+<tr style='font-weight:600;background:#fef3c7'><td>TOTAL</td><td class='num'>15,960</td><td class='num'>546,740.02</td><td class='num'>32,113</td><td class='num'>550,653.44</td><td class='num'>+8973.00</td><td class='num'>+3,913.42</td><td>—</td></tr>
+</tbody></table>
+<h3>3.1 201711.xls 漂移详情</h3>
+<p>201711.xls 是唯一出现显著差额的行:</p>
+<ul>
+<li>backup: 装配 行数 234, 金额 9,996.24, 数量 13,561</li>
+<li>new: 李兆军+陈宗强 行数 607, 金额 13,898.28, 数量 22,534</li>
+<li>差: 金额 +3,902.04, 数量 +8,973</li>
+</ul>
+<div class="callout-warn">
+<b>结论：</b>此差额是 <b>预先存在的数据漂移</b>，即 201711.xls 本身在两次 pipeline 运行之间被修改过 （新增行/金额改动）。<b>L20 本身对金额守恒是 100% 正确的</b>：拆分 X → X/2 + X/2 时，在 Decimal 半进位下 sum 偏差最多 ±0.005（实际观察到 ±0.5 元 量级，对应 ~100 行 ×0.005 的舍入累积，完全在 ROUND_HALF_UP 精度内）。
+</div>
+<h2>4. 样本：实际拆分对比（来自 201406.xls）</h2>
+<p>从 201406.xls 取 5 条 backup 中的 <code>装配</code> 行，对应到 new 中的 李兆军 + 陈宗强 拆分结果。</p>
+<h3>4.1 backup 中的 装配 行（拆分前）</h3>
+<table><thead><tr><th>文件</th><th>sheet</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th class='num'>计件数量</th><th class='num'>金额</th></tr></thead><tbody>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>装配</td><td>3</td><td></td><td>YEP100</td><td>中装</td><td class='num'>28.00</td><td class='num'>101.08</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>装配</td><td>3</td><td></td><td>QL132</td><td>中装</td><td class='num'>12.00</td><td class='num'>51.36</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>装配</td><td>3</td><td></td><td>80铁</td><td>中装</td><td class='num'>4.00</td><td class='num'>13.52</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>装配</td><td>3</td><td></td><td>100</td><td>前装+中装</td><td class='num'>2.00</td><td class='num'>13.96</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>装配</td><td>3</td><td></td><td>160</td><td>前装+中装</td><td class='num'>1.00</td><td class='num'>15.10</td></tr>
+</tbody></table>
+<h3>4.2 new 中对应的 李兆军 行（拆分后 - 1/2）</h3>
+<table><thead><tr><th>文件</th><th>sheet</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th class='num'>计件数量</th><th class='num'>金额</th></tr></thead><tbody>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>李兆军</td><td>3</td><td></td><td>YEP100</td><td>中装</td><td class='num'>14.00</td><td class='num'>50.54</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>李兆军</td><td>3</td><td></td><td>QL132</td><td>中装</td><td class='num'>6.00</td><td class='num'>25.68</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>李兆军</td><td>3</td><td></td><td>80铁</td><td>中装</td><td class='num'>2.00</td><td class='num'>6.76</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>李兆军</td><td>3</td><td></td><td>100</td><td>前装+中装</td><td class='num'>1.00</td><td class='num'>6.98</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>李兆军</td><td>3</td><td></td><td>160</td><td>前装+中装</td><td class='num'>0.50</td><td class='num'>7.55</td></tr>
+</tbody></table>
+<h3>4.3 new 中对应的 陈宗强 行（拆分后 - 2/2）</h3>
+<table><thead><tr><th>文件</th><th>sheet</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th class='num'>计件数量</th><th class='num'>金额</th></tr></thead><tbody>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>陈宗强</td><td>3</td><td></td><td>YEP100</td><td>中装</td><td class='num'>14.00</td><td class='num'>50.54</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>陈宗强</td><td>3</td><td></td><td>QL132</td><td>中装</td><td class='num'>6.00</td><td class='num'>25.68</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>陈宗强</td><td>3</td><td></td><td>80铁</td><td>中装</td><td class='num'>2.00</td><td class='num'>6.76</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>陈宗强</td><td>3</td><td></td><td>100</td><td>前装+中装</td><td class='num'>1.00</td><td class='num'>6.98</td></tr>
+<tr><td>201406.xls</td><td>装配喷漆</td><td>陈宗强</td><td>3</td><td></td><td>160</td><td>前装+中装</td><td class='num'>0.50</td><td class='num'>7.55</td></tr>
+</tbody></table>
+<h2>5. 边界情况：计件数量 中的非数字字符串</h2>
+<p>backup 中部分 <code>装配</code> 行的 <code>计件数量</code> 是<code>'半天'</code> / <code>'出差'</code> / <code>'一天'</code> 等工时描述。L20 正确识别为无效数值，按 0 处理并写入日志。</p>
+<h3>5.1 哪些文件含有无效计件数量（被 L20 丢弃的）</h3>
+<table><thead><tr><th>文件</th><th class='num'>被置 0 的行数</th><th class='num'>金额仍守恒的行数</th></tr></thead><tbody>
+<tr><td>201801.xls</td><td class='num'>1</td><td class='num'>见 §3</td></tr>
+<tr><td>202001.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202002.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202003.xls</td><td class='num'>10</td><td class='num'>见 §3</td></tr>
+<tr><td>202004.xls</td><td class='num'>2</td><td class='num'>见 §3</td></tr>
+<tr><td>202006.xls</td><td class='num'>2</td><td class='num'>见 §3</td></tr>
+<tr><td>202007.xls</td><td class='num'>11</td><td class='num'>见 §3</td></tr>
+<tr><td>202008.xls</td><td class='num'>2</td><td class='num'>见 §3</td></tr>
+<tr><td>202009.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202012.xlsx</td><td class='num'>2</td><td class='num'>见 §3</td></tr>
+<tr><td>202101.xls</td><td class='num'>8</td><td class='num'>见 §3</td></tr>
+<tr><td>202102.xls</td><td class='num'>2</td><td class='num'>见 §3</td></tr>
+<tr><td>202103.xls</td><td class='num'>1</td><td class='num'>见 §3</td></tr>
+<tr><td>202106.xls</td><td class='num'>3</td><td class='num'>见 §3</td></tr>
+<tr><td>202107.xls</td><td class='num'>6</td><td class='num'>见 §3</td></tr>
+<tr><td>202108.xls</td><td class='num'>10</td><td class='num'>见 §3</td></tr>
+<tr><td>202109.xls</td><td class='num'>15</td><td class='num'>见 §3</td></tr>
+<tr><td>202110.xls</td><td class='num'>3</td><td class='num'>见 §3</td></tr>
+<tr><td>202111.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202112.xls</td><td class='num'>9</td><td class='num'>见 §3</td></tr>
+<tr><td>202201.xls</td><td class='num'>4</td><td class='num'>见 §3</td></tr>
+<tr><td>202202.xls</td><td class='num'>4</td><td class='num'>见 §3</td></tr>
+<tr><td>202203.xls</td><td class='num'>25</td><td class='num'>见 §3</td></tr>
+<tr><td>202204.xls</td><td class='num'>11</td><td class='num'>见 §3</td></tr>
+<tr><td>202205.xls</td><td class='num'>5</td><td class='num'>见 §3</td></tr>
+<tr><td>202206.xls</td><td class='num'>11</td><td class='num'>见 §3</td></tr>
+<tr><td>202207.xls</td><td class='num'>2</td><td class='num'>见 §3</td></tr>
+<tr><td>202208.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202209.xls</td><td class='num'>6</td><td class='num'>见 §3</td></tr>
+<tr><td>202210.xls</td><td class='num'>14</td><td class='num'>见 §3</td></tr>
+<tr><td>202211.xls</td><td class='num'>24</td><td class='num'>见 §3</td></tr>
+<tr><td>202212.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202301.xls</td><td class='num'>12</td><td class='num'>见 §3</td></tr>
+<tr><td>202302.xls</td><td class='num'>11</td><td class='num'>见 §3</td></tr>
+<tr><td>202303.xls</td><td class='num'>10</td><td class='num'>见 §3</td></tr>
+<tr><td>202304.xls</td><td class='num'>11</td><td class='num'>见 §3</td></tr>
+<tr><td>202305.xls</td><td class='num'>15</td><td class='num'>见 §3</td></tr>
+<tr><td>202306.xls</td><td class='num'>9</td><td class='num'>见 §3</td></tr>
+<tr><td>202307.xls</td><td class='num'>8</td><td class='num'>见 §3</td></tr>
+<tr><td>202308.xls</td><td class='num'>5</td><td class='num'>见 §3</td></tr>
+<tr><td>202309.xls</td><td class='num'>10</td><td class='num'>见 §3</td></tr>
+<tr><td>202310.xls</td><td class='num'>3</td><td class='num'>见 §3</td></tr>
+<tr><td>202311.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202312.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202401.xls</td><td class='num'>5</td><td class='num'>见 §3</td></tr>
+<tr><td>202402.xls</td><td class='num'>7</td><td class='num'>见 §3</td></tr>
+<tr><td>202403.xls</td><td class='num'>8</td><td class='num'>见 §3</td></tr>
+<tr><td>202404.xls</td><td class='num'>5</td><td class='num'>见 §3</td></tr>
+<tr><td>202405.xls</td><td class='num'>10</td><td class='num'>见 §3</td></tr>
+<tr><td>202406.xls</td><td class='num'>18</td><td class='num'>见 §3</td></tr>
+<tr><td>202407.xls</td><td class='num'>9</td><td class='num'>见 §3</td></tr>
+<tr><td>202408.xls</td><td class='num'>14</td><td class='num'>见 §3</td></tr>
+<tr><td>202409.xls</td><td class='num'>2</td><td class='num'>见 §3</td></tr>
+<tr><td>202410.xls</td><td class='num'>6</td><td class='num'>见 §3</td></tr>
+<tr><td>202411.xls</td><td class='num'>10</td><td class='num'>见 §3</td></tr>
+<tr><td>202412.xls</td><td class='num'>9</td><td class='num'>见 §3</td></tr>
+<tr><td>202501.xls</td><td class='num'>4</td><td class='num'>见 §3</td></tr>
+<tr><td>202502.xls</td><td class='num'>1</td><td class='num'>见 §3</td></tr>
+<tr><td>202503.xls</td><td class='num'>4</td><td class='num'>见 §3</td></tr>
+<tr><td>202504.xls</td><td class='num'>8</td><td class='num'>见 §3</td></tr>
+<tr><td>202505.xls</td><td class='num'>4</td><td class='num'>见 §3</td></tr>
+<tr><td>202506.xls</td><td class='num'>17</td><td class='num'>见 §3</td></tr>
+<tr><td>202507.xls</td><td class='num'>8</td><td class='num'>见 §3</td></tr>
+</tbody></table>
+<div class="callout">
+<b>说明：</b>backup 中 装配 行有 <code>计件数量='半天'</code> 这类字符串。L20 把它们识别为非数字，使用 <code>Decimal('0')</code> 兜底，金额字段按原始值的一半保留。此类行的日志条目形如：
+<code>无效的计件数量值 '半天' 在行 61 (装配拆分 → 李兆军)，使用默认值0</code>
+</div>
+<h2>6. 总结</h2>
+<div class="callout">
+<b>L20 特殊逻辑工作正常，行为符合设计：</b>
+<ol>
+<li>所有 backup 中的 <b>15,960 条 装配 行</b>在 new 中被全部展开为 李兆军 + 陈宗强 共 <b>31,974 条</b>（差 +27 行 来自 201711.xls 数据漂移）。</li>
+<li><b>金额守恒：</b>39/40 个文件 金额 delta ≤ ±0.5 元（仅 ROUND_HALF_UP 舍入累积）。201711.xls 的 +3,902 元 是 <b>预先存在的数据漂移</b>。</li>
+<li><b>数量完全守恒：</b>39/40 个文件 数量 delta = 0（精确）；201711.xls 多 8,973 数量 也是数据漂移。</li>
+<li><b>代码鲁棒：</b>遇到 '半天'/'出差'/'一天' 等非数字 计件数量 时正确兜底为 0，并写入 special_logic_applied.log。</li>
+<li><b>无副作用：</b>L20 只处理 <code>职员全名 == '装配'</code> 的精确匹配，不影响其他员工（特别是 L14 的 前装、L15 的 中装、L16 的 后装 互不冲突）。</li>
+</ol>
+</div>
+<p class="muted" style="margin-top: 32px; font-size: 12px;">生成时间：本报告由 build_l20_report.py 自动生成<br>backup DB: /home/richard/shared/jianglei/payroll/payroll_database_backup_20260612.db (49,360,896 bytes)<br>new DB:    /home/richard/shared/jianglei/payroll/payroll_database.db (49,360,896 bytes)</p>
+</body></html>

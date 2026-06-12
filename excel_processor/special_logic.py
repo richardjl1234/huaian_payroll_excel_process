@@ -56,7 +56,8 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
         '前装拆分': 0,
         '中装替换': 0,
         '后装替换': 0,
-        '工时保留': 0
+        '工时保留': 0,
+        '装配拆分': 0
     }
     
     # 逻辑1: 当工作表名称（去除空格）是"喷漆装配"时，如果第一列是"前装"、"中装"、"后装"或"刘雷", "装配"，则替换列名为"职员全名"
@@ -291,7 +292,56 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
             df = df.drop(rows_to_remove)
             new_rows_df = pd.DataFrame(rows_to_add)
             df = pd.concat([df, new_rows_df], ignore_index=True)
-    
+
+    # 逻辑20: 当'职员全名' == '装配' 时，将记录拆分为 2 行
+    # 拆分规则与 L14 一致: 各得原 计件数量/金额 的一半,使用 Decimal 半进位
+    # 拆分目标: 李兆军 (1/2) + 陈宗强 (1/2)
+    # 经调查: 数据库中 装配 行共 15,960 条,全部精确等于 '装配' (无 '装配人员' 变体),故用 ==
+    if '职员全名' in df.columns and '计件数量' in df.columns and '金额' in df.columns:
+        l20_targets = ('李兆军', '陈宗强')
+
+        def _l20_half_row(src_row, new_name, src_idx):
+            """复制 src_row 并把 职员全名 改为 new_name; 计件数量/金额 各取一半."""
+            new_row = src_row.copy()
+            new_row['职员全名'] = new_name
+            for col in ('计件数量', '金额'):
+                val = new_row.get(col)
+                if pd.isna(val) or val == '':
+                    new_row[col] = Decimal('0')
+                    continue
+                try:
+                    nv = pd.to_numeric([val], errors='coerce')[0]
+                    if pd.notna(nv):
+                        new_row[col] = (Decimal(str(nv)) / Decimal('2')).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    else:
+                        log_logic(
+                            f"无效的{col}值 '{val}' 在行 {src_idx} "
+                            f"(装配拆分 → {new_name})，使用默认值0"
+                        )
+                        new_row[col] = Decimal('0')
+                except Exception as e:
+                    log_logic(
+                        f"{col}转换错误 '{val}' 在行 {src_idx} "
+                        f"(装配拆分 → {new_name}): {str(e)}，使用默认值0"
+                    )
+                    new_row[col] = Decimal('0')
+            return new_row
+
+        l20_rows_to_add = []
+        l20_rows_to_remove = []
+        for idx, row in df.iterrows():
+            if row['职员全名'] == '装配':
+                l20_rows_to_add.append(_l20_half_row(row, l20_targets[0], idx))
+                l20_rows_to_add.append(_l20_half_row(row, l20_targets[1], idx))
+                l20_rows_to_remove.append(idx)
+                operation_counts['装配拆分'] += 1
+
+        if l20_rows_to_remove:
+            df = df.drop(l20_rows_to_remove)
+            new_rows_df = pd.DataFrame(l20_rows_to_add)
+            df = pd.concat([df, new_rows_df], ignore_index=True)
+
     # 逻辑15: 当'职员全名'是'中装'或'中装人员'时，将值改为'李兆军'
     if '职员全名' in df.columns:
         mask = df['职员全名'].str.startswith('中装', na=False)
@@ -309,6 +359,8 @@ def special_logic_preprocess_df(df: pd.DataFrame, sheet_name: str, file_name: st
     # 记录汇总日志
     if operation_counts['前装拆分'] > 0:
         log_logic(f"将'前装'记录拆分为2行: 黄志梅 和 陈会清 共{operation_counts['前装拆分']}次")
+    if operation_counts['装配拆分'] > 0:
+        log_logic(f"将'装配'记录拆分为2行: 李兆军 和 陈宗强 共{operation_counts['装配拆分']}次")
     if operation_counts['中装替换'] > 0:
         log_logic(f"将'中装'改为'李兆军' 共{operation_counts['中装替换']}次")
     if operation_counts['后装替换'] > 0:
