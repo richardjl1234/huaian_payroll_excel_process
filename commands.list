@@ -51,3 +51,23 @@ python one_time_pgms/export_payroll_summary_html.py --output /tmp/summary.html  
 # 例：'校正' → '校正 (1.5H)'，避免被 load_df_to_db 的 to_numeric(coerce).fillna(0.0) 强制转 0 导致信息丢失。
 # 已在 special_logic.py L19 实现。下次跑 batch_process.py 自动生效。
 # 验证：跑 reconcile 报告 "工时/单位信息保留 (L19) 诊断" 段会列出所有受影响行。
+
+# 11. 修复源 Excel 文件 F 列 (定额) 的 #VALUE! 错误（一次性脚本, 2026-06-13 已完成）
+python one_time_pgms/fix_f_column_value_error.py --dry-run                # 预览
+python one_time_pgms/fix_f_column_value_error.py                          # 实际修复
+python one_time_pgms/fix_f_column_value_error.py --files 202011.xls       # 限定文件
+python one_time_pgms/fix_f_column_value_error.py --all                     # 扫描所有 .xls/.xlsx (默认只处理 KNOWN_FILES_WITH_ERRORS)
+# 把 G 列 #VALUE! 行对应 F 列改为 0.8 + 黄底红字, .xls 自动转 .xlsx
+# 备份: /home/richard/shared/jianglei/payroll/{new,old}_payroll_backup_20260612/
+# 当前状态 (2026-06-13): 已修 1,678 个 F 单元格 (12 个 new_payroll 文件 .xls → .xlsx)
+#
+# **G 列 cached value 修复 (2026-06-13 加的三处坑, 必须满足)**:
+#   1) wb.calculation.fullCalcOnLoad = False — 否则 LibreOffice 重算后 G 列公式 cached value 仍是 `<v></v>` 空
+#   2) 显式 filter `--convert-to "xlsx:Calc Office Open XML"` — 隐式 xlsx filter 留下空 <v></v>
+#   3) --outdir 与输入路径必须不同 — 否则 SfxBaseModel::impl_store failed 0x4c0c
+#   4) build_work_list 兼容 .xls/.xlsx 后缀, 脚本可幂等运行 (首次改 .xls, 二次改 .xlsx)
+#   5) 即使 total_modified==0 也要 recalc — 否则 202012.xlsx 这类原 .xlsx 文件 G 列 cached value 不会写入
+#
+# **不要轻易删以下错位置目录** (历史教训):
+#   - 数据真实目录是 payroll_excel_processing/new_payroll/ 和 old_payroll/ (脚本工作目录, 不是父目录!)
+#   - 父目录 /home/richard/shared/jianglei/payroll/new_payroll/ 是不存在的, 不要 cp 错位置

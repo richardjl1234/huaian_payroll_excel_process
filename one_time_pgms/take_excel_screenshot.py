@@ -28,24 +28,24 @@ TEMP_DIR.mkdir(parents=True, exist_ok=True)
 # Format: (file_path, sheet_name, issue_column_letter)
 FILES_WITH_ISSUES = [
     # G列（金额列）— #VALUE! 装配喷漆/喷漆装配
-    ("new_payroll/202011.xls", "装配喷漆", "G"),
-    ("new_payroll/202010.xls", "装配喷漆", "G"),
-    ("new_payroll/202009.xls", "装配喷漆", "G"),
-    ("new_payroll/202006.xls", "喷漆装配", "G"),
-    ("new_payroll/202007.xls", "喷漆装配", "G"),
+    ("new_payroll/202011.xlsx", "装配喷漆", "G"),
+    ("new_payroll/202010.xlsx", "装配喷漆", "G"),
+    ("new_payroll/202009.xlsx", "装配喷漆", "G"),
+    ("new_payroll/202006.xlsx", "喷漆装配", "G"),
+    ("new_payroll/202007.xlsx", "喷漆装配", "G"),
     ("new_payroll/202012.xlsx", "喷漆装配", "G"),
-    ("new_payroll/202101.xls", "喷漆装配", "G"),
-    ("new_payroll/202102.xls", "喷漆装配", "G"),
-    ("new_payroll/202105.xls", "喷漆装配", "G"),
-    ("new_payroll/202108.xls", "装配喷漆", "G"),
+    ("new_payroll/202101.xlsx", "喷漆装配", "G"),
+    ("new_payroll/202102.xlsx", "喷漆装配", "G"),
+    ("new_payroll/202105.xlsx", "喷漆装配", "G"),
+    ("new_payroll/202108.xlsx", "装配喷漆", "G"),
     
     # G列（金额列）— #VALUE! 精加工
-    ("new_payroll/202006.xls", "精加工", "G"),
-    ("new_payroll/202106.xls", "精加工", "G"),
-    ("new_payroll/202101.xls", "精加工", "G"),
-    ("new_payroll/202108.xls", "精加工", "G"),
-    ("new_payroll/202105.xls", "精加工", "G"),
-    ("new_payroll/202110.xls", "精加工", "G"),
+    ("new_payroll/202006.xlsx", "精加工", "G"),
+    ("new_payroll/202106.xlsx", "精加工", "G"),
+    ("new_payroll/202101.xlsx", "精加工", "G"),
+    ("new_payroll/202108.xlsx", "精加工", "G"),
+    ("new_payroll/202105.xlsx", "精加工", "G"),
+    ("new_payroll/202110.xlsx", "精加工", "G"),
     
     # # placeholder 目录（旧版备份）
     # ("old_payroll/placeholder/202006.xls", "喷漆装配", "G"),
@@ -56,15 +56,15 @@ FILES_WITH_ISSUES = [
     # ("old_payroll/placeholder/202011.xls", "装配喷漆", "G"),
     
     # L列（备注列）— #VALUE!
-    ("new_payroll/202108.xls", "装配喷漆", "L"),
-    ("new_payroll/202106.xls", "喷漆装配", "L"),
-    ("new_payroll/202105.xls", "喷漆装配", "L"),
+    ("new_payroll/202108.xlsx", "装配喷漆", "L"),
+    ("new_payroll/202106.xlsx", "喷漆装配", "L"),
+    ("new_payroll/202105.xlsx", "喷漆装配", "L"),
     
     # 汇总表 C/E/F 列 — #REF!
-    ("new_payroll/202504.xls", "汇总", "C"),
+    ("new_payroll/202504.xlsx", "汇总", "C"),
     
     # 其他
-    ("old_payroll/201711.xls", "装配喷漆", "R"),
+    ("old_payroll/201711.xlsx", "装配喷漆", "R"),
     # ("old_payroll/placeholder/202003.xls", "喷漆装配", "E"),
     # ("old_payroll/placeholder/202010_2.xls", "装配喷漆", "G"),
 ]
