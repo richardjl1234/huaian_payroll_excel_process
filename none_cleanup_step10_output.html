@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Step 10 - 'None' 占位符清理结果</title>
+<style>
+body { font-family: sans-serif; margin: 20px; }
+table { border-collapse: collapse; font-size: 12px; margin-bottom: 30px; }
+th, td { border: 1px solid #ddd; padding: 6px; }
+th { background-color: #4472C4; color: white; position: sticky; top: 0; }
+tr:nth-child(even) { background-color: #f2f2f2; }
+tr:hover { background-color: #ffeb99; }
+td { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.section { font-size: 18px; font-weight: bold; margin-top: 30px; margin-bottom: 10px; }
+.updated { background-color: #ffffcc; }
+.summary { background-color: #e6f3ff; font-weight: bold; }
+.zero { color: #999; }
+</style>
+</head>
+<body>
+<h1>Step 10 - 'None' 占位符清理结果</h1>
+
+<div class="section">一、汇总</div>
+<table>
+<tr><th>列名</th><th>占位符总数</th><th>占位符类型分布</th></tr>
+<tr class="summary"><td>代码</td><td>271999</td><td>None=271999</td></tr>
+<tr class="summary"><td>客户名称</td><td>270159</td><td>None=270159</td></tr>
+<tr class="summary"><td>备注</td><td>49134</td><td>None=49134</td></tr>
+<tr class="summary"><td>工序</td><td>212724</td><td>None=212724</td></tr>
+<tr class="summary"><td>型号</td><td>54686</td><td>None=54686</td></tr>
+<tr class="summary"><td>工序全名</td><td>4589</td><td>None=4589</td></tr>
+
+<tr class="summary"><td>合计</td><td>863291</td><td>-</td></tr>
+</table>
+
+<div class="section">二、对照列(预期干净,应为 0)</div>
+<table>
+<tr><th>列名</th><th>占位符计数</th><th>状态</th></tr>
+<tr class="zero"><td>文件名</td><td>0</td><td>✅ 干净</td></tr>
+<tr class="zero"><td>sheet名</td><td>0</td><td>✅ 干净</td></tr>
+<tr class="zero"><td>职员全名</td><td>0</td><td>✅ 干净</td></tr>
+<tr class="zero"><td>日期</td><td>0</td><td>✅ 干净</td></tr>
+</table>
+<div class="section">3、代码 列样本 (271999 条, 前 50 条展示)</div>
+<table>
+<tr><th>rowid</th><th>文件名</th><th>sheet名</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th>工序</th><th>计件数量</th><th>系数</th><th>定额</th><th>金额</th><th>备注</th><th>代码</th></tr>
+<tr class="updated"><td>1</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>YEJ290</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.47</td><td>29.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>2</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>3</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>1.42</td><td>42.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>4</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>90</td><td>1</td><td>1.41</td><td>126.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>5</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>YEJ2100</td><td>压磨铣</td><td>None</td><td>105</td><td>1</td><td>1.68</td><td>176.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>6</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>80BJ2</td><td>压磨铣</td><td>None</td><td>4</td><td>3</td><td>1.29</td><td>15.48</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>7</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL80</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>1.29</td><td>7.74</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>8</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL90</td><td>压磨铣</td><td>None</td><td>6</td><td>2</td><td>1.41</td><td>16.92</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>9</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL90</td><td>压磨铣</td><td>None</td><td>40</td><td>1</td><td>1.41</td><td>56.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>10</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>80BJ3</td><td>压磨铣+外径+校正</td><td>None</td><td>7</td><td>2</td><td>2.35</td><td>32.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>11</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71BJ2</td><td>压磨铣+外径+校正</td><td>None</td><td>2</td><td>3</td><td>2.48</td><td>14.88</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>12</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71加长</td><td>压磨铣+外径+校正</td><td>None</td><td>26</td><td>1.5</td><td>2.57</td><td>100.23</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>13</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90吊篮</td><td>压磨铣</td><td>None</td><td>50</td><td>1</td><td>1.47</td><td>73.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>14</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.41</td><td>42.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>15</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>12</td><td>2</td><td>1.41</td><td>33.84</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>16</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80</td><td>压磨铣</td><td>None</td><td>82</td><td>1</td><td>1.29</td><td>105.78</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>17</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.29</td><td>25.8</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>18</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>YEJ2 112</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.9</td><td>38</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>19</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>100</td><td>压磨铣</td><td>None</td><td>4</td><td>3</td><td>1.55</td><td>18.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>20</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>112</td><td>磨铣</td><td>None</td><td>1</td><td>3</td><td>1.71</td><td>5.13</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>21</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80BJ3</td><td>磨尾部</td><td>None</td><td>7</td><td>2</td><td>0.25</td><td>3.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>22</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>71BJ2</td><td>磨尾部</td><td>None</td><td>2</td><td>3</td><td>0.25</td><td>1.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>23</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>2.19</td><td>65.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>24</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>2.19</td><td>65.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>25</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132BJ6</td><td>压磨铣</td><td>None</td><td>8</td><td>2</td><td>2.36</td><td>37.76</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>26</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>6</td><td>2</td><td>2.19</td><td>26.28</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>27</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>28</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>112BJ5</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>1.9</td><td>11.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>29</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.36</td><td>14.16</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>30</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 90</td><td>压磨铣</td><td>None</td><td>1</td><td>3</td><td>1.47</td><td>4.41</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>31</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 71</td><td>压磨铣+外径+校正</td><td>None</td><td>3</td><td>3</td><td>2.48</td><td>22.32</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>32</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>AO2</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.45</td><td>14.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>33</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>160M调质带T8</td><td>压磨铣</td><td>None</td><td>2</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>34</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>160L调质带T8</td><td>压磨铣</td><td>None</td><td>10</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>35</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压机座</td><td>None</td><td>8</td><td>2</td><td>2.19</td><td>35.04</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>36</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>100</td><td>压机座</td><td>None</td><td>2</td><td>3</td><td>1.55</td><td>9.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>37</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>112</td><td>压机座</td><td>None</td><td>2</td><td>3</td><td>1.71</td><td>10.26</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>38</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>出口电机上货</td><td>(1.5H)</td><td>None</td><td>0</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>39</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>YEJ2 100</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.68</td><td>50.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>40</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>112</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.71</td><td>17.1</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>41</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>90BJ4</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.41</td><td>28.2</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>YEJ2 80</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.35</td><td>27</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>KKS250</td><td>压磨铣+外径+校正</td><td>None</td><td>10</td><td>2</td><td>1.53</td><td>30.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>44</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>14,16</td><td></td><td>90内置</td><td>压磨铣</td><td>None</td><td>100</td><td>1</td><td>1.4</td><td>140</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>45</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>14,16</td><td></td><td>YPEJ2 80</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.35</td><td>40.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>46</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>711-2</td><td>铣四方</td><td>None</td><td>50</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>47</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>磁阻电机</td><td>磨</td><td>None</td><td>1</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>48</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>磁阻电机</td><td>压</td><td>None</td><td>1</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>49</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>门机电机</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>50</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>112</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.71</td><td>17.1</td><td>None</td><td>None</td></tr>
+</table>
+<div class="section">4、客户名称 列样本 (270159 条, 前 50 条展示)</div>
+<table>
+<tr><th>rowid</th><th>文件名</th><th>sheet名</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th>工序</th><th>计件数量</th><th>系数</th><th>定额</th><th>金额</th><th>备注</th><th>代码</th></tr>
+<tr class="updated"><td>1841</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>1</td><td>None</td><td>132S1-6转子</td><td>压+磨+铣+校正</td><td>None</td><td>3</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1842</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>1</td><td>None</td><td>132S1-6转子</td><td>退转子</td><td>None</td><td>3</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1843</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>80转子</td><td>压+磨+铣</td><td>None</td><td>5</td><td>2</td><td>1.29</td><td>12.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1844</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>80转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>1.29</td><td>7.74</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1845</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>90转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>1.41</td><td>8.46</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1846</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>112转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>1.71</td><td>10.26</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1847</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>132转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1848</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>132转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1849</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>YEJ2-71转子</td><td>压+磨+铣+外径+校正</td><td>None</td><td>20</td><td>1.5</td><td>2.63</td><td>78.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1850</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>YEJ2-90转子</td><td>压+磨+铣</td><td>None</td><td>1</td><td>3</td><td>1.47</td><td>4.41</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1851</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>100-8转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>1.55</td><td>9.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1852</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>100-4转子</td><td>压+磨+铣</td><td>None</td><td>4</td><td>3</td><td>1.55</td><td>18.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1853</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>2</td><td>None</td><td>90转子</td><td>压+磨+铣</td><td>None</td><td>6</td><td>2</td><td>1.41</td><td>16.92</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1854</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>132转子</td><td>压+磨+铣</td><td>None</td><td>5</td><td>2</td><td>2.19</td><td>21.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1855</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>63转子</td><td>压+磨+铣</td><td>None</td><td>1</td><td>3</td><td>1.42</td><td>4.26</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1856</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>YEJ2-71转子</td><td>压+磨+铣</td><td>None</td><td>17</td><td>1.5</td><td>1.48</td><td>37.74</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1857</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>YEJ2-80转子</td><td>压+磨+铣</td><td>None</td><td>4</td><td>3</td><td>1.35</td><td>16.2</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1858</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>80转子</td><td>压+磨+铣</td><td>None</td><td>10</td><td>2</td><td>1.29</td><td>25.8</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1859</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>112转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>1.71</td><td>10.26</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1860</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>803-4转子</td><td>压+磨+铣</td><td>None</td><td>30</td><td>1</td><td>1.29</td><td>38.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1861</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>90-4转子</td><td>压+磨+铣</td><td>None</td><td>15</td><td>2</td><td>1.41</td><td>42.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1862</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>90-2转子</td><td>压+磨+铣</td><td>None</td><td>10</td><td>2</td><td>1.41</td><td>28.2</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1863</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>712-2转子</td><td>压+磨+铣</td><td>None</td><td>8</td><td>2</td><td>1.42</td><td>22.72</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1864</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>71转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>1.42</td><td>8.52</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1865</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>112转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>1.71</td><td>10.26</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1866</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>100转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>1.55</td><td>9.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1867</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4</td><td>None</td><td>132转子</td><td>压+磨+铣</td><td>None</td><td>20</td><td>1.5</td><td>2.19</td><td>65.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1868</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>5,7</td><td>None</td><td>90260转子</td><td>压+磨+铣</td><td>None</td><td>121</td><td>1</td><td>2.52</td><td>304.92</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1869</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>8,9</td><td>None</td><td>100-8</td><td>压机座</td><td>None</td><td>1</td><td>3</td><td>1.25</td><td>3.75</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1870</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>8,9</td><td>None</td><td>YEJ2-112</td><td>压机座</td><td>None</td><td>20</td><td>1.5</td><td>1.88</td><td>56.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1871</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>8,9</td><td>None</td><td>S26转子</td><td>压+磨+铣</td><td>None</td><td>40</td><td>1</td><td>1.4</td><td>56</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1872</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>8,9</td><td>None</td><td>90转子</td><td>压+磨+铣</td><td>None</td><td>8</td><td>2</td><td>1.41</td><td>22.56</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1873</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>8,9</td><td>None</td><td>80转子</td><td>压+磨+铣</td><td>None</td><td>6</td><td>2</td><td>1.29</td><td>15.48</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1874</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>8,9</td><td>None</td><td>71转子</td><td>压+磨+铣</td><td>None</td><td>20</td><td>1.5</td><td>1.42</td><td>42.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1875</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>8,9</td><td>None</td><td>803-4转子</td><td>压+磨+铣</td><td>None</td><td>8</td><td>2</td><td>1.29</td><td>20.64</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1876</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>8,9</td><td>None</td><td>出口电机上货+修绕线机</td><td>压+磨+铣 (2H)</td><td>None</td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1877</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>KKS250转子</td><td>压+磨+铣+外径+校正</td><td>None</td><td>20</td><td>1.5</td><td>2.05</td><td>61.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1878</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>80转子</td><td>压+磨+铣</td><td>None</td><td>30</td><td>1</td><td>1.29</td><td>38.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1879</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>YEJ2-112转子</td><td>压+磨+铣</td><td>None</td><td>20</td><td>1.5</td><td>1.9</td><td>57</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1880</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>132转子</td><td>压+磨+铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1881</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>S26转子</td><td>压+磨+铣</td><td>None</td><td>28</td><td>1.5</td><td>1.4</td><td>58.8</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1882</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>170转子</td><td>压+磨+铣</td><td>None</td><td>30</td><td>1</td><td>1.53</td><td>45.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1883</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>YEJ2-63转子</td><td>压+磨+铣+外径+校正</td><td>None</td><td>17</td><td>1.5</td><td>2.01</td><td>51.26</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1884</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>90-2转子</td><td>压+磨+铣</td><td>None</td><td>10</td><td>2</td><td>1.41</td><td>28.2</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1885</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td>None</td><td>KKS250转子</td><td>压+磨+铣</td><td>None</td><td>5</td><td>2</td><td>1.53</td><td>15.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1886</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>14,15,16,17,18,19</td><td>None</td><td>80转子</td><td>压+磨+铣</td><td>None</td><td>1</td><td>3</td><td>1.29</td><td>3.87</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1887</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>14,15,16,17,18,19</td><td>None</td><td>YLJ80转子</td><td>压+磨+铣</td><td>None</td><td>20</td><td>1.5</td><td>1.29</td><td>38.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1888</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>14,15,16,17,18,19</td><td>None</td><td>112转子</td><td>压+磨+铣</td><td>None</td><td>20</td><td>1.5</td><td>1.71</td><td>51.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1889</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>14,15,16,17,18,19</td><td>None</td><td>71加长转子</td><td>压+磨+铣+外径+校正</td><td>None</td><td>20</td><td>1.5</td><td>2.56</td><td>76.8</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>1890</td><td>201407_1.xls</td><td>精加工</td><td>袁崇雷</td><td>14,15,16,17,18,19</td><td>None</td><td>71转子</td><td>压+磨+铣</td><td>None</td><td>30</td><td>1</td><td>1.42</td><td>42.6</td><td>None</td><td>None</td></tr>
+</table>
+<div class="section">5、备注 列样本 (49134 条, 前 50 条展示)</div>
+<table>
+<tr><th>rowid</th><th>文件名</th><th>sheet名</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th>工序</th><th>计件数量</th><th>系数</th><th>定额</th><th>金额</th><th>备注</th><th>代码</th></tr>
+<tr class="updated"><td>1</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>YEJ290</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.47</td><td>29.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>2</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>3</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>1.42</td><td>42.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>4</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>90</td><td>1</td><td>1.41</td><td>126.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>5</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>YEJ2100</td><td>压磨铣</td><td>None</td><td>105</td><td>1</td><td>1.68</td><td>176.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>6</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>80BJ2</td><td>压磨铣</td><td>None</td><td>4</td><td>3</td><td>1.29</td><td>15.48</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>7</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL80</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>1.29</td><td>7.74</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>8</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL90</td><td>压磨铣</td><td>None</td><td>6</td><td>2</td><td>1.41</td><td>16.92</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>9</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL90</td><td>压磨铣</td><td>None</td><td>40</td><td>1</td><td>1.41</td><td>56.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>10</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>80BJ3</td><td>压磨铣+外径+校正</td><td>None</td><td>7</td><td>2</td><td>2.35</td><td>32.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>11</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71BJ2</td><td>压磨铣+外径+校正</td><td>None</td><td>2</td><td>3</td><td>2.48</td><td>14.88</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>12</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71加长</td><td>压磨铣+外径+校正</td><td>None</td><td>26</td><td>1.5</td><td>2.57</td><td>100.23</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>13</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90吊篮</td><td>压磨铣</td><td>None</td><td>50</td><td>1</td><td>1.47</td><td>73.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>14</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.41</td><td>42.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>15</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>12</td><td>2</td><td>1.41</td><td>33.84</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>16</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80</td><td>压磨铣</td><td>None</td><td>82</td><td>1</td><td>1.29</td><td>105.78</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>17</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.29</td><td>25.8</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>18</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>YEJ2 112</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.9</td><td>38</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>19</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>100</td><td>压磨铣</td><td>None</td><td>4</td><td>3</td><td>1.55</td><td>18.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>20</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>112</td><td>磨铣</td><td>None</td><td>1</td><td>3</td><td>1.71</td><td>5.13</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>21</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80BJ3</td><td>磨尾部</td><td>None</td><td>7</td><td>2</td><td>0.25</td><td>3.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>22</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>71BJ2</td><td>磨尾部</td><td>None</td><td>2</td><td>3</td><td>0.25</td><td>1.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>23</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>2.19</td><td>65.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>24</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>2.19</td><td>65.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>25</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132BJ6</td><td>压磨铣</td><td>None</td><td>8</td><td>2</td><td>2.36</td><td>37.76</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>26</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>6</td><td>2</td><td>2.19</td><td>26.28</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>27</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>28</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>112BJ5</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>1.9</td><td>11.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>29</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.36</td><td>14.16</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>30</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 90</td><td>压磨铣</td><td>None</td><td>1</td><td>3</td><td>1.47</td><td>4.41</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>31</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 71</td><td>压磨铣+外径+校正</td><td>None</td><td>3</td><td>3</td><td>2.48</td><td>22.32</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>32</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>AO2</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.45</td><td>14.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>33</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>160M调质带T8</td><td>压磨铣</td><td>None</td><td>2</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>34</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>160L调质带T8</td><td>压磨铣</td><td>None</td><td>10</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>35</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压机座</td><td>None</td><td>8</td><td>2</td><td>2.19</td><td>35.04</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>36</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>100</td><td>压机座</td><td>None</td><td>2</td><td>3</td><td>1.55</td><td>9.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>37</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>112</td><td>压机座</td><td>None</td><td>2</td><td>3</td><td>1.71</td><td>10.26</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>38</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>出口电机上货</td><td>(1.5H)</td><td>None</td><td>0</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>39</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>YEJ2 100</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.68</td><td>50.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>40</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>112</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.71</td><td>17.1</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>41</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>90BJ4</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.41</td><td>28.2</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>YEJ2 80</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.35</td><td>27</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>KKS250</td><td>压磨铣+外径+校正</td><td>None</td><td>10</td><td>2</td><td>1.53</td><td>30.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>44</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>14,16</td><td></td><td>90内置</td><td>压磨铣</td><td>None</td><td>100</td><td>1</td><td>1.4</td><td>140</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>45</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>14,16</td><td></td><td>YPEJ2 80</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.35</td><td>40.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>46</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>711-2</td><td>铣四方</td><td>None</td><td>50</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>47</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>磁阻电机</td><td>磨</td><td>None</td><td>1</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>48</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>磁阻电机</td><td>压</td><td>None</td><td>1</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>49</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>门机电机</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>50</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>112</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.71</td><td>17.1</td><td>None</td><td>None</td></tr>
+</table>
+<div class="section">6、工序 列样本 (212724 条, 前 50 条展示)</div>
+<table>
+<tr><th>rowid</th><th>文件名</th><th>sheet名</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th>工序</th><th>计件数量</th><th>系数</th><th>定额</th><th>金额</th><th>备注</th><th>代码</th></tr>
+<tr class="updated"><td>1</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>YEJ290</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.47</td><td>29.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>2</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>3</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>1.42</td><td>42.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>4</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>90</td><td>1</td><td>1.41</td><td>126.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>5</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>YEJ2100</td><td>压磨铣</td><td>None</td><td>105</td><td>1</td><td>1.68</td><td>176.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>6</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>80BJ2</td><td>压磨铣</td><td>None</td><td>4</td><td>3</td><td>1.29</td><td>15.48</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>7</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL80</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>1.29</td><td>7.74</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>8</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL90</td><td>压磨铣</td><td>None</td><td>6</td><td>2</td><td>1.41</td><td>16.92</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>9</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>QL90</td><td>压磨铣</td><td>None</td><td>40</td><td>1</td><td>1.41</td><td>56.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>10</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>80BJ3</td><td>压磨铣+外径+校正</td><td>None</td><td>7</td><td>2</td><td>2.35</td><td>32.9</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>11</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71BJ2</td><td>压磨铣+外径+校正</td><td>None</td><td>2</td><td>3</td><td>2.48</td><td>14.88</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>12</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>3,4,5</td><td></td><td>71加长</td><td>压磨铣+外径+校正</td><td>None</td><td>26</td><td>1.5</td><td>2.57</td><td>100.23</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>13</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90吊篮</td><td>压磨铣</td><td>None</td><td>50</td><td>1</td><td>1.47</td><td>73.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>14</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.41</td><td>42.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>15</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>90</td><td>压磨铣</td><td>None</td><td>12</td><td>2</td><td>1.41</td><td>33.84</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>16</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80</td><td>压磨铣</td><td>None</td><td>82</td><td>1</td><td>1.29</td><td>105.78</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>17</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.29</td><td>25.8</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>18</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>YEJ2 112</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.9</td><td>38</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>19</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>100</td><td>压磨铣</td><td>None</td><td>4</td><td>3</td><td>1.55</td><td>18.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>20</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>112</td><td>磨铣</td><td>None</td><td>1</td><td>3</td><td>1.71</td><td>5.13</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>21</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>80BJ3</td><td>磨尾部</td><td>None</td><td>7</td><td>2</td><td>0.25</td><td>3.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>22</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>6,7,9</td><td></td><td>71BJ2</td><td>磨尾部</td><td>None</td><td>2</td><td>3</td><td>0.25</td><td>1.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>23</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>2.19</td><td>65.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>24</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>20</td><td>1.5</td><td>2.19</td><td>65.7</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>25</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132BJ6</td><td>压磨铣</td><td>None</td><td>8</td><td>2</td><td>2.36</td><td>37.76</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>26</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>6</td><td>2</td><td>2.19</td><td>26.28</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>27</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.19</td><td>13.14</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>28</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>112BJ5</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>1.9</td><td>11.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>29</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 132</td><td>压磨铣</td><td>None</td><td>2</td><td>3</td><td>2.36</td><td>14.16</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>30</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 90</td><td>压磨铣</td><td>None</td><td>1</td><td>3</td><td>1.47</td><td>4.41</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>31</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>YEJ2 71</td><td>压磨铣+外径+校正</td><td>None</td><td>3</td><td>3</td><td>2.48</td><td>22.32</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>32</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>AO2</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.45</td><td>14.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>33</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>160M调质带T8</td><td>压磨铣</td><td>None</td><td>2</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>34</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>160L调质带T8</td><td>压磨铣</td><td>None</td><td>10</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>35</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>132</td><td>压机座</td><td>None</td><td>8</td><td>2</td><td>2.19</td><td>35.04</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>36</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>100</td><td>压机座</td><td>None</td><td>2</td><td>3</td><td>1.55</td><td>9.3</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>37</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>112</td><td>压机座</td><td>None</td><td>2</td><td>3</td><td>1.71</td><td>10.26</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>38</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>10,11,12</td><td></td><td>出口电机上货</td><td>(1.5H)</td><td>None</td><td>0</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>39</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>YEJ2 100</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.68</td><td>50.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>40</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>112</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.71</td><td>17.1</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>41</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>90BJ4</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.41</td><td>28.2</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>YEJ2 80</td><td>压磨铣</td><td>None</td><td>10</td><td>2</td><td>1.35</td><td>27</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>13</td><td></td><td>KKS250</td><td>压磨铣+外径+校正</td><td>None</td><td>10</td><td>2</td><td>1.53</td><td>30.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>44</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>14,16</td><td></td><td>90内置</td><td>压磨铣</td><td>None</td><td>100</td><td>1</td><td>1.4</td><td>140</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>45</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>14,16</td><td></td><td>YPEJ2 80</td><td>压磨铣</td><td>None</td><td>15</td><td>2</td><td>1.35</td><td>40.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>46</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>711-2</td><td>铣四方</td><td>None</td><td>50</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>47</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>磁阻电机</td><td>磨</td><td>None</td><td>1</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>48</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>磁阻电机</td><td>压</td><td>None</td><td>1</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>49</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>门机电机</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>50</td><td>201406.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18</td><td></td><td>112</td><td>压磨铣</td><td>None</td><td>5</td><td>2</td><td>1.71</td><td>17.1</td><td>None</td><td>None</td></tr>
+</table>
+<div class="section">7、型号 列样本 (54686 条, 前 50 条展示)</div>
+<table>
+<tr><th>rowid</th><th>文件名</th><th>sheet名</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th>工序</th><th>计件数量</th><th>系数</th><th>定额</th><th>金额</th><th>备注</th><th>代码</th></tr>
+<tr class="updated"><td>42966</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>1,2,3</td><td>None</td><td>None</td><td>80</td><td>打中心孔</td><td>100</td><td>1</td><td>0.32</td><td>32</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42967</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>1,2,3</td><td>None</td><td>None</td><td>90</td><td>打中心孔</td><td>200</td><td>1</td><td>0.42</td><td>84</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42968</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>1,2,3</td><td>None</td><td>None</td><td>100</td><td>打中心孔</td><td>100</td><td>1</td><td>0.47</td><td>47</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42969</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>1,2,3</td><td>None</td><td>None</td><td>112</td><td>打中心孔</td><td>20</td><td>1.5</td><td>0.52</td><td>15.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42970</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>1,2,3</td><td>None</td><td>None</td><td>90</td><td>挤压</td><td>150</td><td>1</td><td>0.11</td><td>16.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42971</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>1,2,3</td><td>None</td><td>None</td><td>80调质料</td><td>打中心孔</td><td>101</td><td>1</td><td>0.44</td><td>44.44</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42972</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>1,2,3</td><td>None</td><td>None</td><td>打杂 (2H)</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42973</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>1,2,3</td><td>None</td><td>None</td><td>辅助车132整机</td><td></td><td>1</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42974</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>4</td><td>None</td><td>None</td><td>打扫卫生</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42975</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>15,16</td><td>None</td><td>None</td><td>90油泵</td><td>打孔攻丝+挤压</td><td>312</td><td>1</td><td>0.7</td><td>218.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42976</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>15,16</td><td>None</td><td>None</td><td>车模具钻套</td><td></td><td>4</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42977</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>100</td><td>挤压</td><td>150</td><td>1</td><td>0.13</td><td>19.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42978</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>90</td><td>挤压</td><td>100</td><td>1</td><td>0.12</td><td>12</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42979</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>100</td><td>挤压</td><td>50</td><td>1</td><td>0.13</td><td>6.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42980</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>100铁</td><td>挤压</td><td>476</td><td>1</td><td>0.12</td><td>57.12</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42981</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>132</td><td>挤压</td><td>5</td><td>2</td><td>0.15</td><td>1.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42982</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>112</td><td>挤压</td><td>10</td><td>2</td><td>0.14</td><td>2.8</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42983</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>整理轴 (2H)</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42984</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>100</td><td>打孔</td><td>100</td><td>1</td><td>0.52</td><td>52</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42985</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>90</td><td>打中心孔</td><td>88</td><td>1</td><td>0.47</td><td>41.36</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42986</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>100B14</td><td>打孔攻丝</td><td>50</td><td>1</td><td>0.5</td><td>25</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42987</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>100铁</td><td>打孔攻丝</td><td>150</td><td>1</td><td>0.68</td><td>102</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42988</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>112</td><td>打中心孔</td><td>52</td><td>1</td><td>0.52</td><td>27.04</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42989</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>90轴伸 </td><td>打孔</td><td>200</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42990</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>改90机座接线路+去毛刺</td><td></td><td>500</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42991</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>17,18,19,20,22</td><td>None</td><td>None</td><td>修抽风机 (1H)</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42992</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>23</td><td>None</td><td>None</td><td>90双轴伸</td><td>打孔</td><td>200</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42993</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>24,25,26</td><td>None</td><td>None</td><td>过渡套</td><td>下料</td><td>3</td><td>3</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42994</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>24,25,26</td><td>None</td><td>None</td><td>80</td><td>打中心孔</td><td>20</td><td>1.5</td><td>0.32</td><td>9.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42995</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>24,25,26</td><td>None</td><td>None</td><td>90</td><td>打中心孔</td><td>32</td><td>1</td><td>0.42</td><td>13.44</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42996</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>24,25,26</td><td>None</td><td>None</td><td>100</td><td>打中心孔</td><td>10</td><td>2</td><td>0.47</td><td>9.4</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42997</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>24,25,26</td><td>None</td><td>None</td><td>100铁盖</td><td>打孔攻丝</td><td>326</td><td>1</td><td>0.68</td><td>221.68</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42998</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>24,25,26</td><td>None</td><td>None</td><td>80</td><td>挤压</td><td>150</td><td>1</td><td>0.11</td><td>16.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>42999</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>24,25,26</td><td>None</td><td>None</td><td>90双轴伸</td><td>打孔</td><td>48</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43000</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>24,25,26</td><td>None</td><td>None</td><td>焊铁架+整理车间</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43001</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>27,28</td><td>None</td><td>None</td><td>焊铁架+蒙铁皮</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43002</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>27,28</td><td>None</td><td>None</td><td>100整机打接地螺丝孔</td><td>打孔</td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43003</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>29</td><td>None</td><td>None</td><td>90铁 </td><td>挤压+打孔攻丝</td><td>108</td><td>1</td><td>0.7</td><td>75.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43004</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>29</td><td>None</td><td>None</td><td>80</td><td>打孔攻丝</td><td>25</td><td>1.5</td><td>0.64</td><td>24</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43005</td><td>201602.xls</td><td>精加工</td><td>高中仁</td><td>29</td><td>None</td><td>None</td><td>打100机座接地螺丝孔</td><td>打孔</td><td>100</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43066</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>1,2,3</td><td>None</td><td>None</td><td>车90油泵端盖</td><td>车</td><td>232</td><td>1</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43067</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>4</td><td>None</td><td>None</td><td>打扫卫生</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43068</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>15</td><td>None</td><td>None</td><td>90油泵端盖</td><td>挤压</td><td>312</td><td>1</td><td>0.12</td><td>37.44</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43069</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>16,17,18,19,20,22</td><td>None</td><td>None</td><td> 100铁前盖 </td><td>车+挤压</td><td>476</td><td>1</td><td>1.66</td><td>790.16</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43070</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>16,17,18,19,20,22</td><td>None</td><td>None</td><td> QL80轴</td><td>车</td><td>88</td><td>1</td><td>0.65</td><td>57.2</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43071</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>23</td><td>None</td><td>None</td><td> 80轴</td><td>车</td><td>124</td><td>1</td><td>0.65</td><td>80.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43072</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>24</td><td>None</td><td>None</td><td> 112轴</td><td>车</td><td>20</td><td>1.5</td><td>0.85</td><td>25.5</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43073</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>24</td><td>None</td><td>None</td><td> 112轴</td><td>车</td><td>26</td><td>1.5</td><td>0.85</td><td>33.15</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43074</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>25,26</td><td>None</td><td>None</td><td> 90轴</td><td>车</td><td>260</td><td>1</td><td>0.71</td><td>184.6</td><td>None</td><td>None</td></tr>
+<tr class="updated"><td>43075</td><td>201602.xls</td><td>精加工</td><td>张宝</td><td>25,26</td><td>None</td><td>None</td><td>下货 (0.5H)</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>None</td><td>None</td></tr>
+</table>
+<div class="section">8、工序全名 列样本 (4589 条, 前 50 条展示)</div>
+<table>
+<tr><th>rowid</th><th>文件名</th><th>sheet名</th><th>职员全名</th><th>日期</th><th>客户名称</th><th>型号</th><th>工序全名</th><th>工序</th><th>计件数量</th><th>系数</th><th>定额</th><th>金额</th><th>备注</th><th>代码</th></tr>
+<tr class="updated"><td>42737</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>S26内置</td><td>None</td><td>压</td><td>55</td><td>1</td><td>0.2</td><td>11</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42738</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>S28内置</td><td>None</td><td>压</td><td>40</td><td>1</td><td>0.2</td><td>8</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42739</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>S25内置</td><td>None</td><td>压</td><td>35</td><td>1</td><td>0.2</td><td>7</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42740</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>112</td><td>None</td><td>压</td><td>2</td><td>3</td><td>0.27</td><td>1.62</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42741</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>71</td><td>None</td><td>压</td><td>50</td><td>1</td><td>0.33</td><td>16.5</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42742</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>90</td><td>None</td><td>压</td><td>50</td><td>1</td><td>0.22</td><td>11</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42743</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>100</td><td>None</td><td>压</td><td>20</td><td>1.5</td><td>0.24</td><td>7.2</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42744</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>90/260</td><td>None</td><td>压</td><td>50</td><td>1</td><td>0.2</td><td>10</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42745</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>112</td><td>None</td><td>压</td><td>1</td><td>3</td><td>0.27</td><td>0.81</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42746</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>80</td><td>None</td><td>压</td><td>16</td><td>1.5</td><td>0.2</td><td>4.8</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42747</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>132</td><td>None</td><td>压</td><td>5</td><td>2</td><td>0.54</td><td>5.4</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42748</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>S28内置</td><td>None</td><td>磨</td><td>40</td><td>1</td><td>0.62</td><td>24.8</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42749</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>90/260</td><td>None</td><td>磨</td><td>50</td><td>1</td><td>0.61</td><td>30.5</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42750</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>90变频</td><td>None</td><td>磨</td><td>2</td><td>3</td><td>0.61</td><td>3.66</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42751</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>1,2,3,4,15,16</td><td>None</td><td>调试压机</td><td>None</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42752</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>132机座</td><td>None</td><td>压</td><td>5</td><td>2</td><td>2</td><td>20</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42753</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>80</td><td>None</td><td>压</td><td>105</td><td>1</td><td>0.2</td><td>21</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42754</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>132</td><td>None</td><td>压</td><td>5</td><td>2</td><td>0.54</td><td>5.4</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42755</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>80</td><td>None</td><td>压</td><td>2</td><td>3</td><td>0.2</td><td>1.2</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42756</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>132</td><td>None</td><td>压</td><td>5</td><td>2</td><td>0.54</td><td>5.4</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42757</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>132</td><td>None</td><td>压</td><td>1</td><td>3</td><td>0.54</td><td>1.62</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42758</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>160</td><td>None</td><td>压</td><td>2</td><td>3</td><td>0.57</td><td>3.42</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42759</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>90</td><td>None</td><td>压</td><td>2</td><td>3</td><td>0.22</td><td>1.32</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42760</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>90/260</td><td>None</td><td>压</td><td>15</td><td>2</td><td>0.2</td><td>6</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42761</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>90/170</td><td>None</td><td>压</td><td>10</td><td>2</td><td>0.2</td><td>4</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42762</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>80</td><td>None</td><td>压</td><td>10</td><td>2</td><td>0.2</td><td>4</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42763</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>112</td><td>None</td><td>压</td><td>16</td><td>1.5</td><td>0.27</td><td>6.48</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42764</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>100</td><td>None</td><td>压</td><td>1</td><td>3</td><td>0.24</td><td>0.72</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42765</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>112</td><td>None</td><td>压</td><td>3</td><td>3</td><td>0.27</td><td>2.43</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42766</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>80</td><td>None</td><td>压</td><td>61</td><td>1</td><td>0.2</td><td>12.2</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42767</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>100加热压</td><td>None</td><td>压</td><td>97</td><td>1</td><td>0.24</td><td>23.28</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42768</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>调试压机</td><td>None</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42769</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>17,18,19,20,22</td><td>None</td><td>做铣开口夹具</td><td>None</td><td>铣</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42770</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>23,24,25,26</td><td>None</td><td>铣100开口</td><td>None</td><td>铣</td><td>80</td><td>1</td><td>0.6</td><td>48</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42771</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>23,24,25,26</td><td>None</td><td>100</td><td>None</td><td>压</td><td>2</td><td>3</td><td>0.24</td><td>1.44</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42772</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>23,24,25,26</td><td>None</td><td>90</td><td>None</td><td>压</td><td>20</td><td>1.5</td><td>0.22</td><td>6.6</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42773</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>23,24,25,26</td><td>None</td><td>132</td><td>None</td><td>压</td><td>15</td><td>2</td><td>0.54</td><td>16.2</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42774</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>23,24,25,26</td><td>None</td><td>90</td><td>None</td><td>压</td><td>10</td><td>2</td><td>0.22</td><td>4.4</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42775</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>23,24,25,26</td><td>None</td><td>80</td><td>None</td><td>压</td><td>2</td><td>3</td><td>0.2</td><td>1.2</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42776</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>23,24,25,26</td><td>None</td><td>压热套100转子</td><td>None</td><td>压</td><td>260</td><td>1</td><td>0.24</td><td>62.4</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42777</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>23,24,25,26</td><td>None</td><td>调试数控床夹头</td><td>None</td><td> </td><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42778</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>112</td><td>None</td><td>压</td><td>1</td><td>3</td><td>0.27</td><td>0.81</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42779</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>90</td><td>None</td><td>压</td><td>7</td><td>2</td><td>0.22</td><td>3.08</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42780</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>100</td><td>None</td><td>压</td><td>5</td><td>2</td><td>0.24</td><td>2.4</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42781</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>100</td><td>None</td><td>压</td><td>10</td><td>2</td><td>0.24</td><td>4.8</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42782</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>112</td><td>None</td><td>压</td><td>15</td><td>2</td><td>0.27</td><td>8.1</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42783</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>90</td><td>None</td><td>压</td><td>256</td><td>1</td><td>0.22</td><td>56.32</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42784</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>90</td><td>None</td><td>压</td><td>230</td><td>1</td><td>0.22</td><td>50.6</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42785</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>90</td><td>None</td><td>压</td><td>75</td><td>1</td><td>0.22</td><td>16.5</td><td></td><td>None</td></tr>
+<tr class="updated"><td>42786</td><td>201602.xls</td><td>精加工</td><td>袁崇雷</td><td>27,28,29</td><td>None</td><td>112</td><td>None</td><td>压</td><td>3</td><td>3</td><td>0.27</td><td>2.43</td><td></td><td>None</td></tr>
+</table>
+</body></html>

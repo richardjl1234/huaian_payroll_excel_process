@@ -38,3 +38,6 @@ python cleansing_misc_step8.py
 
 # remove yy,m / m prefix patterns (e.g. '14,6,3' -> '3', '6,1' -> '1')
 ./cleansing_date_handling_step9.py
+
+# Step 10: 清理 pandas astype(str) 引入的字面量 'None' 占位符 (代码/客户名称/备注/工序/型号/工序全名, 共 ~863K 行)
+python3 cleansing_none_cleanup_step10.py
